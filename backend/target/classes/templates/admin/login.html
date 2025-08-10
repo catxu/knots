@@ -61,7 +61,7 @@
             <p class="text-muted">管理员登录</p>
         </div>
         
-        <form th:action="@{/admin/login}" method="post">
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="mb-3">
                 <label for="username" class="form-label">用户名</label>
                 <input type="text" class="form-control" id="username" name="username" required>
@@ -77,8 +77,16 @@
                 <label class="form-check-label" for="remember-me">记住我</label>
             </div>
             
-            <button type="submit" class="btn btn-primary btn-login">登录</button>
+            <button type="submit" class="btn btn-primary btn-login" id="loginBtn">
+                <span id="loginBtnText">登录</span>
+                <span id="loginBtnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+            </button>
         </form>
+        
+        <!-- 错误提示 -->
+        <div id="errorAlert" class="alert alert-danger mt-3 d-none" role="alert">
+            <span id="errorMessage"></span>
+        </div>
         
         <div class="text-center mt-3">
             <small class="text-muted">© 2024 绳结教程管理系统</small>
@@ -86,5 +94,92 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showError('请输入用户名和密码');
+                return;
+            }
+            
+            // 显示加载状态
+            setLoadingState(true);
+            hideError();
+            
+            try {
+                const response = await fetch('/admin/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 登录成功，跳转到仪表板
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    // 显示错误信息
+                    showError(result.message || '登录失败');
+                }
+            } catch (error) {
+                showError('网络错误，请稍后重试');
+                console.error('Login error:', error);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+        
+        function setLoadingState(loading) {
+            const loginBtn = document.getElementById('loginBtn');
+            const loginBtnText = document.getElementById('loginBtnText');
+            const loginBtnSpinner = document.getElementById('loginBtnSpinner');
+            
+            if (loading) {
+                loginBtn.disabled = true;
+                loginBtnText.classList.add('d-none');
+                loginBtnSpinner.classList.remove('d-none');
+            } else {
+                loginBtn.disabled = false;
+                loginBtnText.classList.remove('d-none');
+                loginBtnSpinner.classList.add('d-none');
+            }
+        }
+        
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.textContent = message;
+            errorAlert.classList.remove('d-none');
+        }
+        
+        function hideError() {
+            const errorAlert = document.getElementById('errorAlert');
+            errorAlert.classList.add('d-none');
+        }
+        
+        // 页面加载完成后检查登录状态
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/admin/auth/status');
+                const result = await response.json();
+                
+                if (result.loggedIn) {
+                    // 如果已经登录，直接跳转到仪表板
+                    window.location.href = '/admin/dashboard';
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        });
+    </script>
 </body>
 </html>

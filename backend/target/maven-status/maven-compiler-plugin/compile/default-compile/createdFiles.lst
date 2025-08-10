@@ -2,6 +2,7 @@ com/knots/entity/User$UserRole.class
 com/knots/entity/KnotImage.class
 com/knots/entity/Knot.class
 com/knots/repository/UserRepository.class
+com/knots/controller/AdminAuthController.class
 com/knots/service/KnotService.class
 com/knots/entity/KnotCategory.class
 com/knots/controller/ApiController.class
@@ -10,6 +11,7 @@ com/knots/controller/AdminController.class
 com/knots/service/UserService.class
 com/knots/repository/KnotCategoryRepository.class
 com/knots/config/SecurityConfig.class
+com/knots/controller/AdminAuthController$LoginRequest.class
 com/knots/repository/KnotRepository.class
 com/knots/config/DataInitializer.class
 com/knots/KnotsApplication.class
