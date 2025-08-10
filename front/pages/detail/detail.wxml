@@ -1,0 +1,108 @@
+<view class="container">
+  <!-- 顶部图片 -->
+  <view class="knot-header">
+    <image class="knot-cover" src="{{knot.coverImage}}" mode="aspectFill"></image>
+    <view class="knot-overlay">
+      <view class="knot-title">{{knot.name}}</view>
+      <view class="knot-meta">
+        <text class="knot-category">{{knot.category.name}}</text>
+        <text class="knot-views">{{knot.viewCount}}次浏览</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 绳结信息 -->
+  <view class="knot-info">
+    <view class="info-item">
+      <text class="info-label">难度等级</text>
+      <view class="difficulty-stars">
+        <text class="star" wx:for="{{knot.difficultyLevel}}" wx:key="*this">★</text>
+        <text class="difficulty-text">({{knot.difficultyLevel}}/5)</text>
+      </view>
+    </view>
+    
+    <view class="info-item">
+      <text class="info-label">创建时间</text>
+      <text class="info-value">{{knot.createdAt}}</text>
+    </view>
+  </view>
+
+  <!-- 绳结描述 -->
+  <view class="knot-description">
+    <view class="section-title">绳结介绍</view>
+    <text class="description-text">{{knot.description}}</text>
+  </view>
+
+  <!-- 打结步骤 -->
+  <view class="knot-steps">
+    <view class="section-title">打结步骤</view>
+    <view class="steps-list">
+      <view class="step-item" wx:for="{{steps}}" wx:key="index">
+        <view class="step-header">
+          <view class="step-number">{{index + 1}}</view>
+          <text class="step-title">{{item.title}}</text>
+        </view>
+        <view class="step-content">
+          <text class="step-description">{{item.description}}</text>
+          <view class="step-images" wx:if="{{item.images.length > 0}}">
+            <image class="step-image" 
+                   wx:for="{{item.images}}" 
+                   wx:for-item="img" 
+                   wx:key="*this" 
+                   src="{{img}}" 
+                   mode="aspectFill"
+                   bindtap="previewImage"
+                   data-urls="{{item.images}}"
+                   data-current="{{img}}"></image>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 相关图片 -->
+  <view class="knot-images" wx:if="{{knot.images.length > 0}}">
+    <view class="section-title">相关图片</view>
+    <view class="images-grid">
+      <image class="grid-image" 
+             wx:for="{{knot.images}}" 
+             wx:key="id" 
+             src="{{item.imageUrl}}" 
+             mode="aspectFill"
+             bindtap="previewImage"
+             data-urls="{{imageUrls}}"
+             data-current="{{item.imageUrl}}"></image>
+    </view>
+  </view>
+
+  <!-- 相关推荐 -->
+  <view class="related-knots" wx:if="{{relatedKnots.length > 0}}">
+    <view class="section-title">相关推荐</view>
+    <view class="related-list">
+      <view class="related-item" 
+            wx:for="{{relatedKnots}}" 
+            wx:key="id" 
+            bindtap="goToDetail" 
+            data-id="{{item.id}}">
+        <image class="related-image" src="{{item.coverImage}}" mode="aspectFill"></image>
+        <view class="related-info">
+          <text class="related-name">{{item.name}}</text>
+          <text class="related-category">{{item.category.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-actions">
+    <button class="action-btn share-btn" bindtap="shareKnot">
+      <icon type="share" size="20"></icon>
+      <text>分享</text>
+    </button>
+    <button class="action-btn favorite-btn" bindtap="toggleFavorite">
+      <icon type="{{isFavorite ? 'success' : 'circle'}}" size="20"></icon>
+      <text>{{isFavorite ? '已收藏' : '收藏'}}</text>
+    </button>
+  </view>
+</view>
+

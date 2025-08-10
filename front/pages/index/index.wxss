@@ -1,0 +1,176 @@
+.container {
+  padding: 0;
+  background: #f8f9fa;
+}
+
+/* 搜索栏 */
+.search-bar {
+  padding: 20rpx;
+  background: #667eea;
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 50rpx;
+  padding: 20rpx 30rpx;
+  color: #999;
+}
+
+.search-input icon {
+  margin-right: 20rpx;
+}
+
+/* 轮播图 */
+.banner {
+  height: 300rpx;
+  margin-bottom: 30rpx;
+}
+
+.banner swiper {
+  height: 100%;
+}
+
+.banner image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 分类导航 */
+.category-nav {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 30rpx 20rpx;
+  background: white;
+  margin-bottom: 20rpx;
+}
+
+.category-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.category-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15rpx;
+}
+
+.category-icon image {
+  width: 50rpx;
+  height: 50rpx;
+}
+
+.category-name {
+  font-size: 24rpx;
+  color: #333;
+}
+
+/* 内容区域 */
+.section {
+  background: white;
+  margin-bottom: 20rpx;
+  padding: 30rpx 20rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.section-more {
+  font-size: 26rpx;
+  color: #667eea;
+}
+
+/* 绳结列表 */
+.knot-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10rpx;
+}
+
+.knot-item {
+  width: calc(50% - 20rpx);
+  margin: 10rpx;
+  background: white;
+  border-radius: 15rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.knot-image {
+  width: 100%;
+  height: 200rpx;
+}
+
+.knot-info {
+  padding: 20rpx;
+}
+
+.knot-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knot-category {
+  font-size: 24rpx;
+  color: #667eea;
+  display: block;
+  margin-bottom: 15rpx;
+}
+
+.knot-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view-count {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.difficulty {
+  display: flex;
+  align-items: center;
+}
+
+.difficulty-text {
+  font-size: 22rpx;
+  color: #999;
+  margin-right: 10rpx;
+}
+
+.difficulty-stars {
+  display: flex;
+}
+
+.star {
+  color: #ffd700;
+  font-size: 20rpx;
+}
+

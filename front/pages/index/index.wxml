@@ -1,0 +1,81 @@
+<view class="container">
+  <!-- 顶部搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input" bindtap="goToSearch">
+      <icon type="search" size="16"></icon>
+      <text>搜索绳结教程</text>
+    </view>
+  </view>
+
+  <!-- 轮播图 -->
+  <view class="banner">
+    <swiper indicator-dots="{{true}}" autoplay="{{true}}" interval="3000" duration="500">
+      <swiper-item wx:for="{{banners}}" wx:key="id">
+        <image src="{{item.imageUrl}}" mode="aspectFill" bindtap="goToDetail" data-id="{{item.knotId}}"></image>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <!-- 分类导航 -->
+  <view class="category-nav">
+    <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="goToCategory" data-id="{{item.id}}">
+      <view class="category-icon">
+        <image src="{{item.iconUrl}}" mode="aspectFit"></image>
+      </view>
+      <text class="category-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 热门绳结 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">热门绳结</text>
+      <text class="section-more" bindtap="goToMore" data-type="popular">更多</text>
+    </view>
+    <view class="knot-list">
+      <view class="knot-item" wx:for="{{popularKnots}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+        <image class="knot-image" src="{{item.coverImage}}" mode="aspectFill"></image>
+        <view class="knot-info">
+          <text class="knot-name">{{item.name}}</text>
+          <text class="knot-category">{{item.category.name}}</text>
+          <view class="knot-stats">
+            <text class="view-count">{{item.viewCount}}次浏览</text>
+            <view class="difficulty">
+              <text class="difficulty-text">难度</text>
+              <view class="difficulty-stars">
+                <text class="star" wx:for="{{item.difficultyLevel}}" wx:key="*this">★</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最新绳结 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">最新绳结</text>
+      <text class="section-more" bindtap="goToMore" data-type="latest">更多</text>
+    </view>
+    <view class="knot-list">
+      <view class="knot-item" wx:for="{{latestKnots}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+        <image class="knot-image" src="{{item.coverImage}}" mode="aspectFill"></image>
+        <view class="knot-info">
+          <text class="knot-name">{{item.name}}</text>
+          <text class="knot-category">{{item.category.name}}</text>
+          <view class="knot-stats">
+            <text class="view-count">{{item.viewCount}}次浏览</text>
+            <view class="difficulty">
+              <text class="difficulty-text">难度</text>
+              <view class="difficulty-stars">
+                <text class="star" wx:for="{{item.difficultyLevel}}" wx:key="*this">★</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
