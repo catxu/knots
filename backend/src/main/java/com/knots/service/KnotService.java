@@ -36,6 +36,15 @@ public class KnotService {
         return knotRepository.findByCategoryId(categoryId);
     }
     
+    public Page<Knot> getKnotsByCategory(Long categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Optional<KnotCategory> category = categoryRepository.findById(categoryId);
+        if (category.isPresent()) {
+            return knotRepository.findByCategoryAndIsPublishedTrue(category.get(), pageable);
+        }
+        return Page.empty(pageable);
+    }
+    
     public List<Knot> getTopViewedKnots(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return knotRepository.findTopViewedKnots(pageable);

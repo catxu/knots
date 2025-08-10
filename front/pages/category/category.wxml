@@ -1,0 +1,35 @@
+<!--pages/category/category.wxml-->
+<view class="container">
+  <!-- 分类列表 -->
+  <view class="category-list">
+    <view class="category-item" 
+          wx:for="{{categories}}" 
+          wx:key="id" 
+          bindtap="goToCategoryDetail" 
+          data-id="{{item.id}}">
+      <view class="category-content">
+        <view class="category-icon">
+          <text class="icon-text">{{item.name.charAt(0)}}</text>
+        </view>
+        <view class="category-info">
+          <text class="category-name">{{item.name}}</text>
+          <text class="category-desc">{{item.description}}</text>
+          <text class="category-count">{{item.knotCount || 0}}个绳结</text>
+        </view>
+        <view class="category-arrow">
+          <text class="arrow">></text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{!loading && categories.length === 0}}">
+    <text>暂无分类数据</text>
+  </view>
+</view>

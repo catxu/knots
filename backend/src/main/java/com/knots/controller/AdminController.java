@@ -30,19 +30,26 @@ public class AdminController {
         return "admin/dashboard";
     }
     
-    // 绳结管理页面
-    @GetMapping("/knots")
-    public String knotsList(Model model) {
-        List<Knot> knots = knotService.getAllPublishedKnots(0, 100).getContent();
-        model.addAttribute("knots", knots);
-        return "admin/knots";
-    }
+               // 绳结管理页面
+           @GetMapping("/knots")
+           public String knotsList(Model model) {
+               List<Knot> knots = knotService.getAllPublishedKnots(0, 100).getContent();
+               List<KnotCategory> categories = knotService.getAllCategories();
+               model.addAttribute("knots", knots);
+               model.addAttribute("categories", categories);
+               return "admin/knots";
+           }
     
     // 分类管理页面
     @GetMapping("/categories")
     public String categoriesList(Model model) {
         List<KnotCategory> categories = knotService.getAllCategories();
+        
         model.addAttribute("categories", categories);
+        model.addAttribute("totalCategories", categories.size());
+        model.addAttribute("totalKnots", 0);
+        model.addAttribute("publishedKnots", 0);
+        model.addAttribute("totalViews", 0);
         return "admin/categories";
     }
 }

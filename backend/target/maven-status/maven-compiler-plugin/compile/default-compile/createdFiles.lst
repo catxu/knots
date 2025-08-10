@@ -9,5 +9,7 @@ com/knots/entity/User.class
 com/knots/controller/AdminController.class
 com/knots/service/UserService.class
 com/knots/repository/KnotCategoryRepository.class
+com/knots/config/SecurityConfig.class
 com/knots/repository/KnotRepository.class
+com/knots/config/DataInitializer.class
 com/knots/KnotsApplication.class

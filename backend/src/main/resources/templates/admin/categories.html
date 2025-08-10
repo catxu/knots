@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分类管理 - 绳结教程管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        .navbar-brand {
+            padding-top: .75rem;
+            padding-bottom: .75rem;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, .25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        
+        .nav-link {
+            color: #333;
+            padding: 10px 20px;
+        }
+        
+        .nav-link:hover {
+            background-color: #e9ecef;
+        }
+        
+        .nav-link.active {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            background-color: #5a6fd8;
+            border-color: #5a6fd8;
+        }
+        
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+        
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 侧边栏 -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/dashboard">
+                                <i class="bi bi-speedometer2"></i> 仪表板
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/knots">
+                                <i class="bi bi-collection"></i> 绳结管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/categories">
+                                <i class="bi bi-tags"></i> 分类管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">
+                                <i class="bi bi-people"></i> 用户管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/settings">
+                                <i class="bi bi-gear"></i> 系统设置
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- 主内容区 -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">分类管理</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                            <i class="bi bi-plus"></i> 添加分类
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 分类列表 -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>图标</th>
+                                        <th>分类名称</th>
+                                        <th>描述</th>
+                                        <th>排序</th>
+                                        <th>绳结数量</th>
+                                        <th>创建时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="category : ${categories}">
+                                        <td th:text="${category.id}">1</td>
+                                        <td>
+                                            <div class="category-icon" th:text="${category.name.charAt(0)}">基</div>
+                                        </td>
+                                        <td th:text="${category.name}">基础结</td>
+                                        <td th:text="${category.description}">最基础的绳结类型，适合初学者</td>
+                                        <td th:text="${category.sortOrder}">1</td>
+                                                                                 <td>
+                                             <span class="badge bg-info">0</span>
+                                         </td>
+                                        <td th:text="${#temporals.format(category.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" th:onclick="'editCategory(' + ${category.id} + ')'">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" th:onclick="'deleteCategory(' + ${category.id} + ')'">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分类统计卡片 -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary" th:text="${totalCategories}">5</h5>
+                                <p class="card-text">总分类数</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-success" th:text="${totalKnots}">25</h5>
+                                <p class="card-text">总绳结数</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning" th:text="${publishedKnots}">20</h5>
+                                <p class="card-text">已发布绳结</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-info" th:text="${totalViews}">1500</h5>
+                                <p class="card-text">总浏览次数</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 添加分类模态框 -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">添加分类</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCategoryForm">
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label">分类名称</label>
+                            <input type="text" class="form-control" id="categoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoryDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categorySort" class="form-label">排序</label>
+                            <input type="number" class="form-control" id="categorySort" value="0" min="0">
+                            <div class="form-text">数字越小排序越靠前</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveCategory()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑分类模态框 -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑分类</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCategoryForm">
+                        <input type="hidden" id="editCategoryId">
+                        <div class="mb-3">
+                            <label for="editCategoryName" class="form-label">分类名称</label>
+                            <input type="text" class="form-control" id="editCategoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoryDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="editCategoryDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategorySort" class="form-label">排序</label>
+                            <input type="number" class="form-control" id="editCategorySort" min="0">
+                            <div class="form-text">数字越小排序越靠前</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="updateCategory()">更新</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 保存分类
+        function saveCategory() {
+            const formData = {
+                name: document.getElementById('categoryName').value,
+                description: document.getElementById('categoryDescription').value,
+                sortOrder: parseInt(document.getElementById('categorySort').value) || 0
+            };
+
+            fetch('/admin/api/categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('分类添加成功！');
+                    location.reload();
+                } else {
+                    alert('添加失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('添加失败，请重试');
+            });
+        }
+
+        // 编辑分类
+        function editCategory(id) {
+            // 获取分类数据
+            fetch(`/admin/api/categories/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const category = data.data;
+                    document.getElementById('editCategoryId').value = category.id;
+                    document.getElementById('editCategoryName').value = category.name;
+                    document.getElementById('editCategoryDescription').value = category.description;
+                    document.getElementById('editCategorySort').value = category.sortOrder;
+                    
+                    // 显示编辑模态框
+                    new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+                } else {
+                    alert('获取分类信息失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('获取分类信息失败，请重试');
+            });
+        }
+
+        // 更新分类
+        function updateCategory() {
+            const id = document.getElementById('editCategoryId').value;
+            const formData = {
+                name: document.getElementById('editCategoryName').value,
+                description: document.getElementById('editCategoryDescription').value,
+                sortOrder: parseInt(document.getElementById('editCategorySort').value) || 0
+            };
+
+            fetch(`/admin/api/categories/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('分类更新成功！');
+                    location.reload();
+                } else {
+                    alert('更新失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('更新失败，请重试');
+            });
+        }
+
+        // 删除分类
+        function deleteCategory(id) {
+            if (confirm('确定要删除这个分类吗？删除后该分类下的所有绳结将变为未分类状态。')) {
+                fetch(`/admin/api/categories/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('删除成功！');
+                        location.reload();
+                    } else {
+                        alert('删除失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请重试');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
