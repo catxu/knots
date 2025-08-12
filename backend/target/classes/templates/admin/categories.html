@@ -306,10 +306,22 @@
     <script>
         // 保存分类
         function saveCategory() {
+            // 获取表单数据
+            const name = document.getElementById('categoryName').value.trim();
+            const description = document.getElementById('categoryDescription').value.trim();
+            const sortOrder = parseInt(document.getElementById('categorySort').value) || 0;
+
+            // 前端验证必填字段
+            if (!name) {
+                alert('请输入分类名称');
+                document.getElementById('categoryName').focus();
+                return;
+            }
+
             const formData = {
-                name: document.getElementById('categoryName').value,
-                description: document.getElementById('categoryDescription').value,
-                sortOrder: parseInt(document.getElementById('categorySort').value) || 0
+                name: name,
+                description: description,
+                sortOrder: sortOrder
             };
 
             fetch('/admin/api/categories', {
@@ -362,10 +374,23 @@
         // 更新分类
         function updateCategory() {
             const id = document.getElementById('editCategoryId').value;
+            
+            // 获取表单数据
+            const name = document.getElementById('editCategoryName').value.trim();
+            const description = document.getElementById('editCategoryDescription').value.trim();
+            const sortOrder = parseInt(document.getElementById('editCategorySort').value) || 0;
+
+            // 前端验证必填字段
+            if (!name) {
+                alert('请输入分类名称');
+                document.getElementById('editCategoryName').focus();
+                return;
+            }
+
             const formData = {
-                name: document.getElementById('editCategoryName').value,
-                description: document.getElementById('editCategoryDescription').value,
-                sortOrder: parseInt(document.getElementById('editCategorySort').value) || 0
+                name: name,
+                description: description,
+                sortOrder: sortOrder
             };
 
             fetch(`/admin/api/categories/${id}`, {

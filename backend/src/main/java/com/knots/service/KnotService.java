@@ -83,4 +83,20 @@ public class KnotService {
     public Optional<KnotCategory> getCategoryById(Long id) {
         return categoryRepository.findById(id);
     }
+    
+    public KnotCategory createCategory(KnotCategory category) {
+        return categoryRepository.save(category);
+    }
+    
+    public KnotCategory updateCategory(KnotCategory category) {
+        return categoryRepository.save(category);
+    }
+    
+    public void deleteCategory(Long id) {
+        categoryRepository.deleteById(id);
+    }
+    
+    public Knot createKnot(Knot knot) {
+        return knotRepository.save(knot);
+    }
 }

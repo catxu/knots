@@ -345,14 +345,41 @@
 
         // 保存绳结
         function saveKnot() {
-            const formData = new FormData();
-            formData.append('name', document.getElementById('knotName').value);
-            formData.append('description', document.getElementById('knotDescription').value);
-            formData.append('categoryId', document.getElementById('knotCategory').value);
-            formData.append('difficultyLevel', document.getElementById('knotDifficulty').value);
-            formData.append('isPublished', document.getElementById('knotPublished').checked);
-            
+            // 获取表单数据
+            const name = document.getElementById('knotName').value.trim();
+            const description = document.getElementById('knotDescription').value.trim();
+            const categoryId = document.getElementById('knotCategory').value;
+            const difficultyLevel = document.getElementById('knotDifficulty').value;
+            const isPublished = document.getElementById('knotPublished').checked;
             const coverFile = document.getElementById('knotCover').files[0];
+
+            // 前端验证必填字段
+            if (!name) {
+                alert('请输入绳结名称');
+                document.getElementById('knotName').focus();
+                return;
+            }
+
+            if (!description) {
+                alert('请输入绳结描述');
+                document.getElementById('knotDescription').focus();
+                return;
+            }
+
+            if (!categoryId) {
+                alert('请选择分类');
+                document.getElementById('knotCategory').focus();
+                return;
+            }
+
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('description', description);
+            formData.append('categoryId', categoryId);
+            formData.append('difficultyLevel', difficultyLevel);
+            formData.append('isPublished', isPublished);
+            
             if (coverFile) {
                 formData.append('coverImage', coverFile);
             }

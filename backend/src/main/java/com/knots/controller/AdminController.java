@@ -75,4 +75,19 @@ public class AdminController {
         model.addAttribute("adminUser", adminUser);
         return "admin/categories";
     }
+    
+    // 用户管理页面
+    @GetMapping("/users")
+    public String usersList(Model model, HttpSession session) {
+        // 检查登录状态
+        User adminUser = (User) session.getAttribute("adminUser");
+        if (adminUser == null) {
+            return "redirect:/admin/login";
+        }
+        
+        // 这里可以添加获取用户列表的逻辑
+        // 暂时传递空列表，前端通过API获取
+        model.addAttribute("adminUser", adminUser);
+        return "admin/users";
+    }
 }
