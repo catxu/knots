@@ -5,6 +5,7 @@ import com.knots.entity.KnotCategory;
 import com.knots.entity.User;
 import com.knots.repository.KnotRepository;
 import com.knots.repository.KnotCategoryRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +28,7 @@ public class KnotService {
         return knotRepository.findByIsPublishedTrue(pageable);
     }
     
-    public Page<Knot> searchKnots(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<Knot> searchKnots(String keyword, Pageable pageable) {
         return knotRepository.searchByKeyword(keyword, pageable);
     }
     
@@ -38,9 +38,9 @@ public class KnotService {
     
     public Page<Knot> getKnotsByCategory(Long categoryId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Optional<KnotCategory> category = categoryRepository.findById(categoryId);
-        if (category.isPresent()) {
-            return knotRepository.findByCategoryAndIsPublishedTrue(category.get(), pageable);
+        KnotCategory category = categoryRepository.findById(categoryId).orElse(null);
+        if (category != null) {
+            return knotRepository.findByCategoryAndIsPublishedTrue(category, pageable);
         }
         return Page.empty(pageable);
     }
@@ -50,8 +50,8 @@ public class KnotService {
         return knotRepository.findTopViewedKnots(pageable);
     }
     
-    public Optional<Knot> getKnotById(Long id) {
-        return knotRepository.findById(id);
+    public Knot getKnotById(Long id) {
+        return knotRepository.findById(id).orElse(null);
     }
     
     public Knot createKnot(Knot knot, User createdBy) {
@@ -68,9 +68,8 @@ public class KnotService {
     }
     
     public void incrementViewCount(Long knotId) {
-        Optional<Knot> knotOpt = knotRepository.findById(knotId);
-        if (knotOpt.isPresent()) {
-            Knot knot = knotOpt.get();
+        Knot knot = knotRepository.findById(knotId).orElse(null);
+        if (knot != null) {
             knot.setViewCount(knot.getViewCount() + 1);
             knotRepository.save(knot);
         }
@@ -80,8 +79,8 @@ public class KnotService {
         return categoryRepository.findAllByOrderBySortOrderAsc();
     }
     
-    public Optional<KnotCategory> getCategoryById(Long id) {
-        return categoryRepository.findById(id);
+    public KnotCategory getCategoryById(Long id) {
+        return categoryRepository.findById(id).orElse(null);
     }
     
     public KnotCategory createCategory(KnotCategory category) {
@@ -98,5 +97,22 @@ public class KnotService {
     
     public Knot createKnot(Knot knot) {
         return knotRepository.save(knot);
+    }
+    
+    // 新增分页方法
+    public Page<Knot> getAllKnots(Pageable pageable) {
+        return knotRepository.findAll(pageable);
+    }
+    
+    public Page<Knot> getKnotsByStatus(boolean isPublished, Pageable pageable) {
+        if (isPublished) {
+            return knotRepository.findByIsPublishedTrue(pageable);
+        } else {
+            return knotRepository.findByIsPublishedFalse(pageable);
+        }
+    }
+    
+    public Page<KnotCategory> getCategoriesPage(Pageable pageable) {
+        return categoryRepository.findAll(pageable);
     }
 }

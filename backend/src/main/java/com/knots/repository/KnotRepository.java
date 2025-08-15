@@ -26,4 +26,6 @@ public interface KnotRepository extends JpaRepository<Knot, Long> {
     
     @Query("SELECT k FROM Knot k WHERE k.isPublished = true ORDER BY k.viewCount DESC")
     List<Knot> findTopViewedKnots(Pageable pageable);
+    
+    Page<Knot> findByIsPublishedFalse(Pageable pageable);
 }

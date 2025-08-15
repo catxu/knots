@@ -6,6 +6,8 @@ import com.knots.repository.KnotCategoryRepository;
 import com.knots.service.KnotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -32,7 +34,8 @@ public class ApiController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<Knot> knots = knotService.searchKnots(keyword, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Knot> knots = knotService.searchKnots(keyword, pageable);
         return ResponseEntity.ok(knots);
     }
 
@@ -52,12 +55,13 @@ public class ApiController {
 
     @GetMapping("/knots/{id}")
     public ResponseEntity<Knot> getKnotById(@PathVariable Long id) {
-        return knotService.getKnotById(id)
-                .map(knot -> {
-                    knotService.incrementViewCount(id);
-                    return ResponseEntity.ok(knot);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Knot knot = knotService.getKnotById(id);
+        if (knot != null) {
+            knotService.incrementViewCount(id);
+            return ResponseEntity.ok(knot);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/knots/popular")

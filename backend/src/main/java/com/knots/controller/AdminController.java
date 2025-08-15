@@ -48,9 +48,7 @@ public class AdminController {
             return "redirect:/admin/login";
         }
         
-        List<Knot> knots = knotService.getAllPublishedKnots(0, 100).getContent();
         List<KnotCategory> categories = knotService.getAllCategories();
-        model.addAttribute("knots", knots);
         model.addAttribute("categories", categories);
         model.addAttribute("adminUser", adminUser);
         return "admin/knots";
@@ -65,13 +63,6 @@ public class AdminController {
             return "redirect:/admin/login";
         }
         
-        List<KnotCategory> categories = knotService.getAllCategories();
-        
-        model.addAttribute("categories", categories);
-        model.addAttribute("totalCategories", categories.size());
-        model.addAttribute("totalKnots", 0);
-        model.addAttribute("publishedKnots", 0);
-        model.addAttribute("totalViews", 0);
         model.addAttribute("adminUser", adminUser);
         return "admin/categories";
     }
