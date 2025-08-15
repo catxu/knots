@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS knot_images (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     image_url VARCHAR(500) NOT NULL,
     image_name VARCHAR(200),
+    image_remark VARCHAR(500),
     image_type VARCHAR(50),
     file_size BIGINT,
     sort_order INT DEFAULT 0,

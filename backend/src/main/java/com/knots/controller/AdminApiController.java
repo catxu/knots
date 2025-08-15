@@ -1,8 +1,11 @@
 package com.knots.controller;
 
+import com.knots.dto.KnotDTO;
+import com.knots.dto.KnotsQueryForm;
 import com.knots.dto.PageResponse;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
+import com.knots.entity.KnotImage;
 import com.knots.entity.User;
 import com.knots.service.FileService;
 import com.knots.service.KnotService;
@@ -41,20 +44,15 @@ public class AdminApiController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Boolean isPublished) {
         
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Knot> knotsPage;
+        KnotsQueryForm queryForm = new KnotsQueryForm();
+        queryForm.setPage(page);
+        queryForm.setSize(size);
+        queryForm.setKeyword(keyword);
+        queryForm.setCategoryId(categoryId);
+        queryForm.setIsPublished(isPublished);
         
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            knotsPage = knotService.searchKnots(keyword, pageable);
-        } else if (categoryId != null) {
-            knotsPage = knotService.getKnotsByCategory(categoryId, page, size);
-        } else if (isPublished != null) {
-            knotsPage = knotService.getKnotsByStatus(isPublished, pageable);
-        } else {
-            knotsPage = knotService.getAllKnots(pageable);
-        }
-        
-        return ResponseEntity.ok(PageResponse.of(knotsPage));
+        Page<Knot> knotsPage = knotService.findKnotsByQuery(queryForm);
+        return ResponseEntity.ok(PageResponse.of(knotsPage, KnotDTO::fromEntity));
     }
     
     @PostMapping("/knots")
@@ -103,7 +101,10 @@ public class AdminApiController {
             @RequestParam Long categoryId,
             @RequestParam(defaultValue = "1") int difficultyLevel,
             @RequestParam(defaultValue = "false") boolean isPublished,
-            @RequestParam(required = false) MultipartFile coverImage) {
+            @RequestParam(required = false) MultipartFile coverImage,
+            @RequestParam(required = false) MultipartFile[] images,
+            @RequestParam(required = false) String[] imageRemarks,
+            @RequestParam(required = false) Integer[] imageSortOrders) {
         
         try {
             Knot existingKnot = knotService.getKnotById(id);
@@ -133,11 +134,56 @@ public class AdminApiController {
                 existingKnot.setCoverImage(imagePath);
             }
             
+            // 处理多张图片
+            if (images != null && images.length > 0) {
+                for (int i = 0; i < images.length; i++) {
+                    if (images[i] != null && !images[i].isEmpty()) {
+                        String imagePath = fileService.uploadFile(images[i]);
+                        
+                        // 创建KnotImage对象
+                        KnotImage knotImage = new KnotImage();
+                        knotImage.setImageUrl(imagePath);
+                        knotImage.setImageName(images[i].getOriginalFilename());
+                        knotImage.setImageType(images[i].getContentType());
+                        knotImage.setFileSize(images[i].getSize());
+                        knotImage.setKnot(existingKnot);
+                        
+                        // 设置图片描述和排序
+                        if (imageRemarks != null && i < imageRemarks.length) {
+                            knotImage.setImageRemark(imageRemarks[i]);
+                        }
+                        if (imageSortOrders != null && i < imageSortOrders.length) {
+                            knotImage.setSortOrder(imageSortOrders[i]);
+                        } else {
+                            knotImage.setSortOrder(i + 1);
+                        }
+                        
+                        // 保存图片
+                        knotService.saveKnotImage(knotImage);
+                    }
+                }
+            }
+            
             Knot updatedKnot = knotService.updateKnot(existingKnot);
-            return ResponseEntity.ok(createSuccessResponse("绳结更新成功", updatedKnot));
+            return ResponseEntity.ok(createSuccessResponse("绳结更新成功", KnotDTO.fromEntity(updatedKnot)));
             
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(createErrorResponse("更新失败：" + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/knots/{id}")
+    public ResponseEntity<?> getKnot(@PathVariable Long id) {
+        try {
+            Knot knot = knotService.getKnotById(id);
+            if (knot == null) {
+                return ResponseEntity.badRequest().body(createErrorResponse("绳结不存在"));
+            }
+            
+            return ResponseEntity.ok(createSuccessResponse("获取成功", KnotDTO.fromEntity(knot)));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("获取失败：" + e.getMessage()));
         }
     }
     
@@ -154,8 +200,60 @@ public class AdminApiController {
                 fileService.deleteFile(knot.getCoverImage());
             }
             
+            // 删除所有绳结图片
+            knotService.deleteKnotImages(id);
+            
             knotService.deleteKnot(id);
             return ResponseEntity.ok(createSuccessResponse("绳结删除成功", null));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("删除失败：" + e.getMessage()));
+        }
+    }
+    
+    // 绳结图片相关API
+    @PutMapping("/knot-images/{id}")
+    public ResponseEntity<?> updateKnotImage(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request) {
+        
+        try {
+            KnotImage image = knotService.getKnotImageById(id);
+            if (image == null) {
+                return ResponseEntity.badRequest().body(createErrorResponse("图片不存在"));
+            }
+            
+            if (request.containsKey("imageRemark")) {
+                image.setImageRemark((String) request.get("imageRemark"));
+            }
+            
+            if (request.containsKey("sortOrder")) {
+                image.setSortOrder((Integer) request.get("sortOrder"));
+            }
+            
+            KnotImage updatedImage = knotService.saveKnotImage(image);
+            return ResponseEntity.ok(createSuccessResponse("图片更新成功", updatedImage));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("更新失败：" + e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/knot-images/{id}")
+    public ResponseEntity<?> deleteKnotImage(@PathVariable Long id) {
+        try {
+            KnotImage image = knotService.getKnotImageById(id);
+            if (image == null) {
+                return ResponseEntity.badRequest().body(createErrorResponse("图片不存在"));
+            }
+            
+            // 删除文件
+            if (image.getImageUrl() != null) {
+                fileService.deleteFile(image.getImageUrl());
+            }
+            
+            knotService.deleteKnotImage(id);
+            return ResponseEntity.ok(createSuccessResponse("图片删除成功", null));
             
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(createErrorResponse("删除失败：" + e.getMessage()));

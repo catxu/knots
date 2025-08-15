@@ -17,6 +17,9 @@ public class KnotImage {
     
     @Column(name = "image_name")
     private String imageName;
+
+    @Column(name = "image_remark")
+    private String imageRemark;
     
     @Column(name = "image_type")
     private String imageType;

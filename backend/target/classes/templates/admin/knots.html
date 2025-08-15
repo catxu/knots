@@ -260,6 +260,106 @@
         </div>
     </div>
 
+    <!-- 编辑绳结模态框 -->
+    <div class="modal fade" id="editKnotModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑绳结</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editKnotForm">
+                        <input type="hidden" id="editKnotId">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="editKnotName" class="form-label">绳结名称</label>
+                                    <input type="text" class="form-control" id="editKnotName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editKnotDescription" class="form-label">描述</label>
+                                    <textarea class="form-control" id="editKnotDescription" rows="3"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editKnotCategory" class="form-label">分类</label>
+                                            <select class="form-select" id="editKnotCategory" required>
+                                                <option value="">选择分类</option>
+                                                <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editKnotDifficulty" class="form-label">难度等级</label>
+                                            <select class="form-select" id="editKnotDifficulty">
+                                                <option value="1">1级 - 简单</option>
+                                                <option value="2">2级 - 基础</option>
+                                                <option value="3">3级 - 中等</option>
+                                                <option value="4">4级 - 困难</option>
+                                                <option value="5">5级 - 专家</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editKnotCover" class="form-label">封面图片</label>
+                                    <input type="file" class="form-control" id="editKnotCover" accept="image/*">
+                                    <div class="mt-2">
+                                        <img id="editCoverPreview" class="img-fluid d-none" style="max-width: 200px;">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editKnotPublished">
+                                        <label class="form-check-label" for="editKnotPublished">
+                                            发布状态
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 现有图片管理 -->
+                        <div class="mb-3">
+                            <h6>现有图片管理</h6>
+                            <div class="row" id="existingImagesContainer">
+                                <!-- 现有图片将在这里动态显示 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 添加新图片 -->
+                        <div class="mb-3">
+                            <h6>添加新图片</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editKnotImages" class="form-label">选择图片</label>
+                                        <input type="file" class="form-control" id="editKnotImages" accept="image/*" multiple>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editImageRemarks" class="form-label">图片描述（用逗号分隔）</label>
+                                        <textarea class="form-control" id="editImageRemarks" rows="3" placeholder="图片1描述,图片2描述,图片3描述..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="updateKnot()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentPage = 0;
@@ -500,9 +600,248 @@
 
         // 编辑绳结
         function editKnot(id) {
-            // 实现编辑逻辑
-            console.log('编辑绳结:', id);
+            // 获取绳结详情
+            fetch(`/admin/api/knots/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const knot = data.data;
+                        // 填充表单
+                        document.getElementById('editKnotId').value = knot.id;
+                        document.getElementById('editKnotName').value = knot.name;
+                        document.getElementById('editKnotDescription').value = knot.description;
+                        document.getElementById('editKnotCategory').value = knot.category ? knot.category.id : '';
+                        document.getElementById('editKnotDifficulty').value = knot.difficultyLevel;
+                        document.getElementById('editKnotPublished').checked = knot.isPublished;
+                        
+                        // 显示封面图片预览
+                        if (knot.coverImage) {
+                            document.getElementById('editCoverPreview').src = knot.coverImage;
+                            document.getElementById('editCoverPreview').classList.remove('d-none');
+                        } else {
+                            document.getElementById('editCoverPreview').classList.add('d-none');
+                        }
+                        
+                        // 显示现有图片
+                        displayExistingImages(knot.images || []);
+                        
+                        // 显示编辑模态框
+                        const modal = new bootstrap.Modal(document.getElementById('editKnotModal'));
+                        modal.show();
+                    } else {
+                        alert('获取绳结详情失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('获取绳结详情失败，请重试');
+                });
         }
+        
+        // 显示现有图片
+        function displayExistingImages(images) {
+            const container = document.getElementById('existingImagesContainer');
+            container.innerHTML = '';
+            
+            if (images.length === 0) {
+                container.innerHTML = '<p class="text-muted">暂无图片</p>';
+                return;
+            }
+            
+            images.forEach(image => {
+                const imageDiv = document.createElement('div');
+                imageDiv.className = 'col-md-3 mb-3';
+                imageDiv.innerHTML = `
+                    <div class="card">
+                        <img src="${image.imageUrl}" class="card-img-top" alt="绳结图片" style="height: 150px; object-fit: cover;">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label class="form-label">描述</label>
+                                <input type="text" class="form-control form-control-sm" value="${image.imageRemark || ''}" 
+                                       onchange="updateImageRemark(${image.id}, this.value)">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">排序</label>
+                                <input type="number" class="form-control form-control-sm" value="${image.sortOrder || 0}" 
+                                       onchange="updateImageSortOrder(${image.id}, this.value)">
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteKnotImage(${image.id})">
+                                <i class="bi bi-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(imageDiv);
+            });
+        }
+        
+        // 更新图片描述
+        function updateImageRemark(imageId, remark) {
+            fetch(`/admin/api/knot-images/${imageId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ imageRemark: remark })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('更新图片描述失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('更新图片描述失败，请重试');
+            });
+        }
+        
+        // 更新图片排序
+        function updateImageSortOrder(imageId, sortOrder) {
+            fetch(`/admin/api/knot-images/${imageId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sortOrder: parseInt(sortOrder) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('更新图片排序失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('更新图片排序失败，请重试');
+            });
+        }
+        
+        // 删除绳结图片
+        function deleteKnotImage(imageId) {
+            if (confirm('确定要删除这张图片吗？')) {
+                fetch(`/admin/api/knot-images/${imageId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('图片删除成功！');
+                        // 重新加载编辑模态框中的图片
+                        const knotId = document.getElementById('editKnotId').value;
+                        editKnot(knotId);
+                    } else {
+                        alert('删除失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请重试');
+                });
+            }
+        }
+        
+        // 更新绳结
+        function updateKnot() {
+            // 获取表单数据
+            const id = document.getElementById('editKnotId').value;
+            const name = document.getElementById('editKnotName').value.trim();
+            const description = document.getElementById('editKnotDescription').value.trim();
+            const categoryId = document.getElementById('editKnotCategory').value;
+            const difficultyLevel = document.getElementById('editKnotDifficulty').value;
+            const isPublished = document.getElementById('editKnotPublished').checked;
+            const coverFile = document.getElementById('editKnotCover').files[0];
+            const imageFiles = document.getElementById('editKnotImages').files;
+            const imageRemarks = document.getElementById('editImageRemarks').value.trim();
+
+            // 前端验证必填字段
+            if (!name) {
+                alert('请输入绳结名称');
+                document.getElementById('editKnotName').focus();
+                return;
+            }
+
+            if (!description) {
+                alert('请输入绳结描述');
+                document.getElementById('editKnotDescription').focus();
+                return;
+            }
+
+            if (!categoryId) {
+                alert('请选择分类');
+                document.getElementById('editKnotCategory').focus();
+                return;
+            }
+
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('description', description);
+            formData.append('categoryId', categoryId);
+            formData.append('difficultyLevel', difficultyLevel);
+            formData.append('isPublished', isPublished);
+            
+            if (coverFile) {
+                formData.append('coverImage', coverFile);
+            }
+            
+            // 添加新图片
+            if (imageFiles.length > 0) {
+                for (let i = 0; i < imageFiles.length; i++) {
+                    formData.append('images', imageFiles[i]);
+                }
+                
+                // 处理图片描述
+                if (imageRemarks) {
+                    const remarks = imageRemarks.split(',').map(r => r.trim());
+                    for (let i = 0; i < remarks.length; i++) {
+                        formData.append('imageRemarks', remarks[i]);
+                    }
+                }
+                
+                // 设置图片排序
+                for (let i = 0; i < imageFiles.length; i++) {
+                    formData.append('imageSortOrders', i + 1);
+                }
+            }
+
+            // 发送请求到后端
+            fetch(`/admin/api/knots/${id}`, {
+                method: 'PUT',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('绳结更新成功！');
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editKnotModal'));
+                    modal.hide();
+                    // 重新加载列表
+                    loadKnots(currentPage);
+                } else {
+                    alert('更新失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('更新失败，请重试');
+            });
+        }
+        
+        // 编辑封面图片预览
+        document.getElementById('editKnotCover').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('editCoverPreview');
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         // 删除绳结
         function deleteKnot(id) {

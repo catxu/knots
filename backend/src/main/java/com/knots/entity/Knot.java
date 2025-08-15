@@ -1,5 +1,6 @@
 package com.knots.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ public class Knot {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private KnotCategory category;
     
     @Column(name = "difficulty_level")
@@ -40,6 +42,7 @@ public class Knot {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User createdBy;
     
     @Column(name = "created_at")
@@ -49,6 +52,7 @@ public class Knot {
     private LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "knot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private List<KnotImage> images;
     
     @PrePersist

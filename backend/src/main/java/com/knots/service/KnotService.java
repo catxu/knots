@@ -1,10 +1,13 @@
 package com.knots.service;
 
+import com.knots.dto.KnotsQueryForm;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
+import com.knots.entity.KnotImage;
 import com.knots.entity.User;
 import com.knots.repository.KnotRepository;
 import com.knots.repository.KnotCategoryRepository;
+import com.knots.repository.KnotImageRepository;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,6 +25,9 @@ public class KnotService {
     
     @Autowired
     private KnotCategoryRepository categoryRepository;
+    
+    @Autowired
+    private KnotImageRepository knotImageRepository;
     
     public Page<Knot> getAllPublishedKnots(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -114,5 +120,45 @@ public class KnotService {
     
     public Page<KnotCategory> getCategoriesPage(Pageable pageable) {
         return categoryRepository.findAll(pageable);
+    }
+    
+    // 条件查询方法
+    public Page<Knot> findKnotsByQuery(KnotsQueryForm queryForm) {
+        Pageable pageable = queryForm.toPageable();
+        
+        if (queryForm.hasKeyword()) {
+            return searchKnots(queryForm.getKeyword(), pageable);
+        } else if (queryForm.hasCategoryId()) {
+            return getKnotsByCategory(queryForm.getCategoryId(), queryForm.getPage(), queryForm.getSize());
+        } else if (queryForm.hasStatus()) {
+            return getKnotsByStatus(queryForm.getIsPublished(), pageable);
+        } else {
+            return getAllKnots(pageable);
+        }
+    }
+    
+    // 保存绳结图片
+    public KnotImage saveKnotImage(KnotImage knotImage) {
+        return knotImageRepository.save(knotImage);
+    }
+    
+    // 获取绳结的所有图片
+    public List<KnotImage> getKnotImages(Long knotId) {
+        return knotImageRepository.findByKnotIdOrderBySortOrderAsc(knotId);
+    }
+    
+    // 删除绳结图片
+    public void deleteKnotImage(Long imageId) {
+        knotImageRepository.deleteById(imageId);
+    }
+    
+    // 删除绳结的所有图片
+    public void deleteKnotImages(Long knotId) {
+        knotImageRepository.deleteByKnotId(knotId);
+    }
+    
+    // 根据ID获取绳结图片
+    public KnotImage getKnotImageById(Long id) {
+        return knotImageRepository.findById(id).orElse(null);
     }
 }

@@ -26,4 +26,4 @@ replay_pid*
 .vscode/
 .idea/
 target/
-upload/
+uploads/
