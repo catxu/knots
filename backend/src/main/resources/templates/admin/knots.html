@@ -332,22 +332,16 @@
                             </div>
                         </div>
                         
-                        <!-- 添加新图片 -->
+                        <!-- 绳结步骤图片管理 -->
                         <div class="mb-3">
-                            <h6>添加新图片</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="editKnotImages" class="form-label">选择图片</label>
-                                        <input type="file" class="form-control" id="editKnotImages" accept="image/*" multiple>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="editImageRemarks" class="form-label">图片描述（用逗号分隔）</label>
-                                        <textarea class="form-control" id="editImageRemarks" rows="3" placeholder="图片1描述,图片2描述,图片3描述..."></textarea>
-                                    </div>
-                                </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6>绳结步骤图片</h6>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addKnotImageRow()">
+                                    <i class="bi bi-plus"></i> 添加更多图片
+                                </button>
+                            </div>
+                            <div id="knotImagesContainer">
+                                <!-- 动态添加的图片行将在这里显示 -->
                             </div>
                         </div>
                     </form>
@@ -562,6 +556,13 @@
                 return;
             }
 
+            // 封面图片必填验证
+            if (!coverFile) {
+                alert('请选择封面图片');
+                document.getElementById('knotCover').focus();
+                return;
+            }
+
             // 创建FormData对象
             const formData = new FormData();
             formData.append('name', name);
@@ -624,6 +625,9 @@
                         
                         // 显示现有图片
                         displayExistingImages(knot.images || []);
+                        
+                        // 清空动态图片容器
+                        document.getElementById('knotImagesContainer').innerHTML = '';
                         
                         // 显示编辑模态框
                         const modal = new bootstrap.Modal(document.getElementById('editKnotModal'));
@@ -751,8 +755,12 @@
             const difficultyLevel = document.getElementById('editKnotDifficulty').value;
             const isPublished = document.getElementById('editKnotPublished').checked;
             const coverFile = document.getElementById('editKnotCover').files[0];
-            const imageFiles = document.getElementById('editKnotImages').files;
-            const imageRemarks = document.getElementById('editImageRemarks').value.trim();
+            
+            // 获取动态添加的图片行数据
+            const imageRows = document.getElementById('knotImagesContainer').children;
+            const newImages = [];
+            const newImageRemarks = [];
+            const newImageSortOrders = [];
 
             // 前端验证必填字段
             if (!name) {
@@ -772,6 +780,19 @@
                 document.getElementById('editKnotCategory').focus();
                 return;
             }
+            
+            // 收集动态添加的图片数据
+            for (let i = 0; i < imageRows.length; i++) {
+                const row = imageRows[i];
+                const fileInput = row.querySelector('input[type="file"]');
+                const remarkInput = row.querySelector('input[type="text"]');
+                
+                if (fileInput && fileInput.files[0]) {
+                    newImages.push(fileInput.files[0]);
+                    newImageRemarks.push(remarkInput ? remarkInput.value.trim() : '');
+                    newImageSortOrders.push(i + 1);
+                }
+            }
 
             // 创建FormData对象
             const formData = new FormData();
@@ -786,22 +807,11 @@
             }
             
             // 添加新图片
-            if (imageFiles.length > 0) {
-                for (let i = 0; i < imageFiles.length; i++) {
-                    formData.append('images', imageFiles[i]);
-                }
-                
-                // 处理图片描述
-                if (imageRemarks) {
-                    const remarks = imageRemarks.split(',').map(r => r.trim());
-                    for (let i = 0; i < remarks.length; i++) {
-                        formData.append('imageRemarks', remarks[i]);
-                    }
-                }
-                
-                // 设置图片排序
-                for (let i = 0; i < imageFiles.length; i++) {
-                    formData.append('imageSortOrders', i + 1);
+            if (newImages.length > 0) {
+                for (let i = 0; i < newImages.length; i++) {
+                    formData.append('images', newImages[i]);
+                    formData.append('imageRemarks', newImageRemarks[i]);
+                    formData.append('imageSortOrders', newImageSortOrders[i]);
                 }
             }
 
@@ -842,6 +852,76 @@
                 reader.readAsDataURL(file);
             }
         });
+        
+        // 动态添加绳结图片行
+        function addKnotImageRow() {
+            const container = document.getElementById('knotImagesContainer');
+            const imageCount = container.children.length;
+            const rowId = `imageRow_${Date.now()}`;
+            
+            const rowHtml = `
+                <div class="row mb-3 align-items-center" id="${rowId}">
+                    <div class="col-md-1">
+                        <span class="badge bg-primary">${imageCount + 1}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="file" class="form-control form-control-sm" accept="image/*" 
+                               onchange="previewKnotImage(this, '${rowId}')">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control form-control-sm" placeholder="图片描述" 
+                               id="remark_${rowId}">
+                    </div>
+                    <div class="col-md-2">
+                        <img id="preview_${rowId}" class="img-thumbnail d-none" style="max-width: 60px; max-height: 60px;">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeKnotImageRow('${rowId}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', rowHtml);
+        }
+        
+        // 预览绳结图片
+        function previewKnotImage(input, rowId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById(`preview_${rowId}`);
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 删除绳结图片行
+        function removeKnotImageRow(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.remove();
+                // 重新排序
+                reorderKnotImages();
+            }
+        }
+        
+        // 重新排序绳结图片
+        function reorderKnotImages() {
+            const container = document.getElementById('knotImagesContainer');
+            const rows = container.children;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const badge = rows[i].querySelector('.badge');
+                if (badge) {
+                    badge.textContent = i + 1;
+                }
+            }
+        }
 
         // 删除绳结
         function deleteKnot(id) {
