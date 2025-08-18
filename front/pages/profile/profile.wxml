@@ -3,7 +3,7 @@
   <!-- 用户信息 -->
   <view class="user-info">
     <view class="user-avatar" bindtap="login" wx:if="{{!userInfo}}">
-      <image src="/images/default-avatar.png" mode="aspectFill"></image>
+      <image src="/images/default-avatar.svg" mode="aspectFill"></image>
       <text class="login-text">点击登录</text>
     </view>
     <view class="user-avatar" wx:else>

@@ -36,7 +36,7 @@ Page({
         },
         {
           id: 2,
-          imageUrl: '/images/banner2.jpg',
+          imageUrl: '/images/banner2.webp',
           knotId: 2
         }
       ]

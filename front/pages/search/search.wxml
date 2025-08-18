@@ -11,7 +11,7 @@
              confirm-type="search" />
       <icon wx:if="{{keyword}}" type="clear" size="16" class="clear-icon" bindtap="clearSearch"></icon>
     </view>
-    <text class="cancel-btn" bindtap="goBack">取消</text>
+    <!-- <text class="cancel-btn" bindtap="goBack">取消</text> -->
   </view>
 
   <!-- 搜索历史 -->
