@@ -71,7 +71,7 @@ Page({
     });
 
     app.request({
-      url: `/knots/search?keyword=${encodeURIComponent(this.data.keyword)}&page=0&size=${this.data.size}`
+      url: `/search?keyword=${encodeURIComponent(this.data.keyword)}&page=0&size=${this.data.size}`
     }).then(res => {
       this.setData({
         knots: res.content,
@@ -101,7 +101,7 @@ Page({
     });
 
     app.request({
-      url: `/knots/search?keyword=${encodeURIComponent(this.data.keyword)}&page=${this.data.page}&size=${this.data.size}`
+      url: `/search?keyword=${encodeURIComponent(this.data.keyword)}&page=${this.data.page}&size=${this.data.size}`
     }).then(res => {
       this.setData({
         knots: [...this.data.knots, ...res.content],

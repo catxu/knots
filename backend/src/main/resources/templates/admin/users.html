@@ -121,6 +121,85 @@
         </div>
     </div>
 
+    <!-- 添加用户模态框 -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">添加用户</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label for="addUsername" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="addUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addPassword" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="addPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addNickName" class="form-label">微信昵称</label>
+                            <input type="text" class="form-control" id="addNickName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="addRole" class="form-label">角色</label>
+                            <select class="form-select" id="addRole">
+                                <option value="USER" selected>USER</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUser()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑用户模态框 -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑用户</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="mb-3">
+                            <label for="editUsername" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="editUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPassword" class="form-label">密码（留空则不修改）</label>
+                            <input type="password" class="form-control" id="editPassword" placeholder="不修改请留空">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editNickName" class="form-label">微信昵称</label>
+                            <input type="text" class="form-control" id="editNickName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">角色</label>
+                            <select class="form-select" id="editRole">
+                                <option value="USER">USER</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUser()">更新</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentPage = 0;
@@ -242,6 +321,132 @@
                     alert('登出失败，请稍后重试');
                 }
             }
+        }
+
+        // 显示添加用户模态框
+        function showAddUserModal() {
+            document.getElementById('addUserForm').reset();
+            new bootstrap.Modal(document.getElementById('addUserModal')).show();
+        }
+
+        // 保存新用户
+        function saveUser() {
+            const username = document.getElementById('addUsername').value.trim();
+            const password = document.getElementById('addPassword').value.trim();
+            const nickName = document.getElementById('addNickName').value.trim();
+            const role = document.getElementById('addRole').value;
+
+            if (!username) {
+                alert('请输入用户名');
+                document.getElementById('addUsername').focus();
+                return;
+            }
+            if (!password) {
+                alert('请输入密码');
+                document.getElementById('addPassword').focus();
+                return;
+            }
+
+            const payload = { username, password, nickName, role };
+
+            fetch('/admin/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+                    modal.hide();
+                    loadUsers(currentPage);
+                } else {
+                    alert('添加失败：' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('添加失败，请重试');
+            });
+        }
+
+        // 编辑用户（打开并填充表单）
+        function editUser(userId) {
+            fetch(`/admin/api/users/${userId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert('获取用户信息失败：' + data.message);
+                        return;
+                    }
+                    const user = data.data;
+                    document.getElementById('editUserId').value = user.id;
+                    document.getElementById('editUsername').value = user.username || '';
+                    document.getElementById('editPassword').value = '';
+                    document.getElementById('editNickName').value = user.nickName || '';
+                    document.getElementById('editRole').value = user.role || 'USER';
+                    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('获取用户信息失败，请重试');
+                });
+        }
+
+        // 更新用户
+        function updateUser() {
+            const id = document.getElementById('editUserId').value;
+            const username = document.getElementById('editUsername').value.trim();
+            const password = document.getElementById('editPassword').value.trim();
+            const nickName = document.getElementById('editNickName').value.trim();
+            const role = document.getElementById('editRole').value;
+
+            if (!username) {
+                alert('用户名不能为空');
+                document.getElementById('editUsername').focus();
+                return;
+            }
+
+            const payload = { username, nickName, role };
+            if (password) payload.password = password;
+
+            fetch(`/admin/api/users/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                    modal.hide();
+                    loadUsers(currentPage);
+                } else {
+                    alert('更新失败：' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('更新失败，请重试');
+            });
+        }
+
+        // 删除用户
+        function deleteUser(userId) {
+            if (!confirm('确定要删除该用户吗？')) return;
+            fetch(`/admin/api/users/${userId}`, { method: 'DELETE' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        loadUsers(currentPage);
+                    } else {
+                        alert('删除失败：' + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('删除失败，请重试');
+                });
         }
     </script>
 </body>

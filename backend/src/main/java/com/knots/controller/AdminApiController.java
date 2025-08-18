@@ -21,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -34,6 +36,9 @@ public class AdminApiController {
     
     @Autowired
     private FileService fileService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     // 绳结相关API
     @GetMapping("/knots")
@@ -356,8 +361,113 @@ public class AdminApiController {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<User> usersPage = userService.getUsersPage(pageable);
-        
-        return ResponseEntity.ok(PageResponse.of(usersPage));
+
+        return ResponseEntity.ok(PageResponse.of(usersPage, this::sanitizeUser));
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        Optional<User> userOpt = userService.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(createErrorResponse("用户不存在"));
+        }
+        return ResponseEntity.ok(createSuccessResponse("获取成功", sanitizeUser(userOpt.get())));
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<?> createUser(@RequestBody Map<String, Object> request) {
+        try {
+            String username = (String) request.get("username");
+            String password = (String) request.get("password");
+            String nickName = (String) request.getOrDefault("nickName", null);
+            String roleStr = (String) request.getOrDefault("role", "USER");
+
+            if (username == null || username.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("用户名不能为空"));
+            }
+            if (password == null || password.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("密码不能为空"));
+            }
+            if (userService.existsByUsername(username)) {
+                return ResponseEntity.badRequest().body(createErrorResponse("用户名已存在"));
+            }
+
+            User user = new User();
+            user.setUsername(username.trim());
+            user.setPassword(passwordEncoder.encode(password));
+            user.setNickName(nickName);
+            try {
+                user.setRole(User.UserRole.valueOf(roleStr.toUpperCase()));
+            } catch (Exception ex) {
+                user.setRole(User.UserRole.USER);
+            }
+
+            User saved = userService.saveUser(user);
+            return ResponseEntity.ok(createSuccessResponse("用户创建成功", sanitizeUser(saved)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("创建失败：" + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        try {
+            Optional<User> userOpt = userService.findById(id);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("用户不存在"));
+            }
+
+            User user = userOpt.get();
+
+            if (request.containsKey("username")) {
+                String newUsername = ((String) request.get("username")).trim();
+                if (newUsername.isEmpty()) {
+                    return ResponseEntity.badRequest().body(createErrorResponse("用户名不能为空"));
+                }
+                if (!newUsername.equals(user.getUsername()) && userService.existsByUsername(newUsername)) {
+                    return ResponseEntity.badRequest().body(createErrorResponse("用户名已存在"));
+                }
+                user.setUsername(newUsername);
+            }
+
+            if (request.containsKey("nickName")) {
+                user.setNickName((String) request.get("nickName"));
+            }
+
+            if (request.containsKey("role")) {
+                String roleStr = (String) request.get("role");
+                try {
+                    user.setRole(User.UserRole.valueOf(roleStr.toUpperCase()));
+                } catch (Exception ignored) { }
+            }
+
+            if (request.containsKey("password")) {
+                String newPassword = (String) request.get("password");
+                if (newPassword != null && !newPassword.trim().isEmpty()) {
+                    user.setPassword(passwordEncoder.encode(newPassword));
+                }
+            }
+
+            User saved = userService.updateUser(user);
+            return ResponseEntity.ok(createSuccessResponse("用户更新成功", sanitizeUser(saved)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("更新失败：" + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            Optional<User> userOpt = userService.findById(id);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("用户不存在"));
+            }
+
+            userService.deleteUser(id);
+            return ResponseEntity.ok(createSuccessResponse("用户删除成功", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("删除失败：" + e.getMessage()));
+        }
     }
     
     private Map<String, Object> createSuccessResponse(String message, Object data) {
@@ -373,5 +483,18 @@ public class AdminApiController {
         response.put("success", false);
         response.put("message", message);
         return response;
+    }
+
+    private Map<String, Object> sanitizeUser(User user) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", user.getId());
+        data.put("username", user.getUsername());
+        data.put("nickName", user.getNickName());
+        data.put("avatarUrl", user.getAvatarUrl());
+        data.put("role", user.getRole() != null ? user.getRole().name() : null);
+        data.put("createdAt", user.getCreatedAt());
+        data.put("updatedAt", user.getUpdatedAt());
+        data.put("openId", user.getOpenId());
+        return data;
     }
 }
