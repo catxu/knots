@@ -42,9 +42,7 @@ CREATE TABLE IF NOT EXISTS knots
     is_published     BOOLEAN  DEFAULT FALSE,
     created_by       BIGINT,
     created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES knot_categories (id),
-    FOREIGN KEY (created_by) REFERENCES users (id)
+    updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 创建绳结图片表
@@ -59,8 +57,7 @@ CREATE TABLE IF NOT EXISTS knot_images
     sort_order   INT      DEFAULT 0,
     knot_id      BIGINT,
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (knot_id) REFERENCES knots (id) ON DELETE CASCADE
+    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 插入默认管理员用户

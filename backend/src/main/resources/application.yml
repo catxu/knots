@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:knots_db;MODE=MySQL
+    url: jdbc:h2:mem:knots_db
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -42,3 +42,7 @@ jwt:
 # 文件上传配置
 file:
   upload-dir: ./uploads/
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true

@@ -25,7 +25,7 @@ public class ApiController {
 
     @GetMapping("/categories")
     public ResponseEntity<List<KnotCategory>> getCategories() {
-        List<KnotCategory> categories = categoryRepository.findAllByOrderBySortOrderAsc();
+        List<KnotCategory> categories = knotService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
 

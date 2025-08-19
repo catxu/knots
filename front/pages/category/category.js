@@ -41,9 +41,11 @@ Page({
 
   // 跳转到分类详情
   goToCategoryDetail(e) {
-    const categoryId = e.currentTarget.dataset.id;
+    const categoryId = Number(e.currentTarget.dataset.id);
+    const category = this.data.categories.find(c => Number(c.id) === categoryId);
+    const name = category ? encodeURIComponent(category.name) : '';
     wx.navigateTo({
-      url: `/pages/category-detail/category-detail?id=${categoryId}`
+      url: `/pages/category-detail/category-detail?id=${categoryId}&name=${name}`
     });
   },
 

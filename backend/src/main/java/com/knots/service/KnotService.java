@@ -1,14 +1,16 @@
 package com.knots.service;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.knots.dto.KnotsQueryForm;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
 import com.knots.entity.KnotImage;
 import com.knots.entity.User;
+import com.knots.mapper.KnotMapper;
+import com.knots.mapper.KnotCategoryMapper;
 import com.knots.repository.KnotRepository;
 import com.knots.repository.KnotCategoryRepository;
 import com.knots.repository.KnotImageRepository;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,13 +20,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class KnotService {
+public class KnotService extends ServiceImpl<KnotMapper, Knot> {
     
     @Autowired
     private KnotRepository knotRepository;
     
     @Autowired
     private KnotCategoryRepository categoryRepository;
+
+    @Autowired
+    private KnotCategoryMapper knotCategoryMapper;
     
     @Autowired
     private KnotImageRepository knotImageRepository;
@@ -82,7 +87,8 @@ public class KnotService {
     }
     
     public List<KnotCategory> getAllCategories() {
-        return categoryRepository.findAllByOrderBySortOrderAsc();
+        // 带 knotCount 的分类列表
+        return knotCategoryMapper.selectAllWithKnotCount();
     }
     
     public KnotCategory getCategoryById(Long id) {

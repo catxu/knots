@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="header">
+    <text class="title">{{categoryName}}</text>
+  </view>
+
+  <view class="knot-list">
+    <view class="knot-item" wx:for="{{knots}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+      <image class="cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+      <view class="info">
+        <text class="name">{{item.name}}</text>
+        <text class="desc">{{item.description}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && knots.length === 0}}">
+    <text>暂无数据</text>
+  </view>
+</view>
+
+

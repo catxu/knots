@@ -1,0 +1,41 @@
+.container {
+  padding: 16rpx;
+}
+
+.header .title {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.knot-item {
+  display: flex;
+  padding: 16rpx 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cover {
+  width: 200rpx;
+  height: 150rpx;
+  border-radius: 8rpx;
+  background: #f2f2f2;
+  margin-right: 16rpx;
+}
+
+.info .name {
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.info .desc {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 8rpx;
+}
+
+.loading, .empty {
+  text-align: center;
+  color: #888;
+  padding: 24rpx 0;
+}
+
+
