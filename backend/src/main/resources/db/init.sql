@@ -32,13 +32,13 @@ CREATE TABLE IF NOT EXISTS knot_categories
 CREATE TABLE IF NOT EXISTS knots
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name             VARCHAR(200) NOT NULL,
+    category_id      BIGINT       NOT NULL,
+    name             VARCHAR(200) NOT NULL UNIQUE,
     description      TEXT,
     steps            TEXT,
-    cover_image      VARCHAR(500),
-    category_id      BIGINT,
-    difficulty_level INT      DEFAULT 1,
-    view_count       INT      DEFAULT 0,
+    cover_image      VARCHAR(200),
+    difficulty_level INT UNSIGNED DEFAULT 1,
+    view_count       INT UNSIGNED DEFAULT 0,
     is_published     BOOLEAN  DEFAULT FALSE,
     created_by       BIGINT,
     created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -49,15 +49,13 @@ CREATE TABLE IF NOT EXISTS knots
 CREATE TABLE IF NOT EXISTS knot_images
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    knot_id      BIGINT       NOT NULL,
     image_url    VARCHAR(500) NOT NULL,
     image_name   VARCHAR(200),
     image_remark VARCHAR(500),
-    image_type   VARCHAR(50),
-    file_size    BIGINT,
-    sort_order   INT      DEFAULT 0,
-    knot_id      BIGINT,
-    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    sort_order   INT UNSIGNED DEFAULT 0,
+    created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 插入默认管理员用户
@@ -74,15 +72,9 @@ VALUES ('基础结', '最基础的绳结类型，适合初学者', 1),
 
 -- 插入示例绳结数据
 INSERT INTO knots (name, description, steps, category_id, difficulty_level, is_published, created_by)
-VALUES ('平结', '最基础的绳结，用于连接两根绳子',
-        '[{"title":"步骤1","description":"将两根绳子交叉","images":[]},{"title":"步骤2","description":"将右绳从下方穿过左绳","images":[]},{"title":"步骤3","description":"将左绳从下方穿过右绳","images":[]},{"title":"步骤4","description":"拉紧完成","images":[]}]',
-        1, 1, TRUE, 1),
-       ('八字结', '防止绳子从孔洞中滑出的绳结',
-        '[{"title":"步骤1","description":"将绳子对折","images":[]},{"title":"步骤2","description":"在对折处打一个环","images":[]},{"title":"步骤3","description":"将绳端从环中穿过","images":[]},{"title":"步骤4","description":"拉紧完成","images":[]}]',
-        1, 2, TRUE, 1),
-       ('双套结', '用于固定物体到柱子或杆子上的绳结',
-        '[{"title":"步骤1","description":"将绳子绕柱子一圈","images":[]},{"title":"步骤2","description":"再绕一圈","images":[]},{"title":"步骤3","description":"将绳端从两圈之间穿过","images":[]},{"title":"步骤4","description":"拉紧完成","images":[]}]',
-        2, 2, TRUE, 1);
+VALUES ('平结', '最基础的绳结，用于连接两根绳子', '1.将两根绳子交叉;2.将右绳从下方穿过左绳;3.将左绳从下方穿过右绳;4.拉紧完成', 1, 1, TRUE, 1),
+       ('八字结', '防止绳子从孔洞中滑出的绳结', '1.将绳子对折;2.在对折处打一个环;3.将绳端从环中穿过;4.拉紧完成', 1, 2,TRUE, 1),
+       ('双套结', '用于固定物体到柱子或杆子上的绳结', '1.将绳子绕柱子一圈;2.再绕一圈;3.将绳端从两圈之间穿过;4.拉紧完成', 2, 2, TRUE, 1);
 
 -- 创建索引
 CREATE INDEX idx_knots_category ON knots (category_id);

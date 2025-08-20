@@ -12,20 +12,20 @@ import java.util.List;
 
 @Repository
 public interface KnotRepository extends JpaRepository<Knot, Long> {
-    
+
     Page<Knot> findByIsPublishedTrue(Pageable pageable);
-    
-    Page<Knot> findByCategoryAndIsPublishedTrue(KnotCategory category, Pageable pageable);
-    
+
+    Page<Knot> findByCategoryIdAndIsPublishedTrue(KnotCategory category, Pageable pageable);
+
     @Query("SELECT k FROM Knot k WHERE k.isPublished = true AND " +
            "(k.name LIKE %:keyword% OR k.description LIKE %:keyword%)")
     Page<Knot> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
-    
-    @Query("SELECT k FROM Knot k WHERE k.isPublished = true AND k.category.id = :categoryId")
+
+    @Query("SELECT k FROM Knot k WHERE k.isPublished = true AND k.categoryId = :categoryId")
     List<Knot> findByCategoryId(@Param("categoryId") Long categoryId);
-    
+
     @Query("SELECT k FROM Knot k WHERE k.isPublished = true ORDER BY k.viewCount DESC")
     List<Knot> findTopViewedKnots(Pageable pageable);
-    
+
     Page<Knot> findByIsPublishedFalse(Pageable pageable);
 }

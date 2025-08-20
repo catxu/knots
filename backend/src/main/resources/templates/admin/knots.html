@@ -27,33 +27,33 @@
             background: #f8f9fa;
             min-height: 100vh;
         }
-        
+
         .card {
             border: none;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             border-radius: 0.5rem;
         }
-        
+
         .btn-primary {
             background-color: #667eea;
             border-color: #667eea;
         }
-        
+
         .btn-primary:hover {
             background-color: #5a6fd8;
             border-color: #5a6fd8;
         }
-        
+
         .table th {
             border-top: none;
             font-weight: 600;
             color: #495057;
         }
-        
+
         .badge {
             font-size: 0.75em;
         }
-        
+
         .knot-image {
             width: 60px;
             height: 60px;
@@ -71,7 +71,7 @@
                     <div class="text-center mb-4">
                         <h4 class="text-white">绳结教程管理</h4>
                     </div>
-                    
+
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" th:href="@{/admin/dashboard}">
@@ -175,7 +175,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <!-- 分页控件 -->
                         <nav aria-label="绳结列表分页">
                             <ul class="pagination justify-content-center" id="pagination">
@@ -323,7 +323,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- 现有图片管理 -->
                         <div class="mb-3">
                             <h6>现有图片管理</h6>
@@ -331,7 +331,7 @@
                                 <!-- 现有图片将在这里动态显示 -->
                             </div>
                         </div>
-                        
+
                         <!-- 绳结步骤图片管理 -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -356,23 +356,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let currentPage = 0;
+        let currentPage = 1;
         let currentSize = 10;
         let currentKeyword = '';
         let currentCategoryId = '';
         let currentStatus = '';
-        
+
         // 页面加载时获取绳结列表
         document.addEventListener('DOMContentLoaded', function() {
             loadKnots();
         });
-        
+
         // 加载绳结列表
-        function loadKnots(page = 0) {
+        function loadKnots(page = 1) {
             currentPage = page;
-            
+
             let url = `/admin/api/knots?page=${page}&size=${currentSize}`;
-            
+
             if (currentKeyword) {
                 url += `&keyword=${encodeURIComponent(currentKeyword)}`;
             }
@@ -382,7 +382,7 @@
             if (currentStatus !== '') {
                 url += `&isPublished=${currentStatus}`;
             }
-            
+
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -394,20 +394,20 @@
                     alert('获取绳结列表失败，请重试');
                 });
         }
-        
+
         // 显示绳结列表
         function displayKnots(knots) {
             const tbody = document.getElementById('knotsTableBody');
             tbody.innerHTML = '';
-            
+
             if (knots.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">暂无数据</td></tr>';
                 return;
             }
-            
+
             knots.forEach(knot => {
                 const row = document.createElement('tr');
-                
+
                 // 生成难度星级
                 let stars = '';
                 for (let i = 1; i <= 5; i++) {
@@ -417,7 +417,7 @@
                         stars += '<i class="bi bi-star text-muted"></i>';
                     }
                 }
-                
+
                 // 生成封面图片
                 let coverImage = '';
                 if (knot.coverImage) {
@@ -425,24 +425,23 @@
                 } else {
                     coverImage = '<div class="knot-image bg-light d-flex align-items-center justify-content-center"><i class="bi bi-image text-muted"></i></div>';
                 }
-                
+
                 // 生成状态标签
-                const statusBadge = knot.isPublished ? 
-                    '<span class="badge bg-success">已发布</span>' : 
+                const statusBadge = knot.isPublished ?
+                    '<span class="badge bg-success">已发布</span>' :
                     '<span class="badge bg-warning">未发布</span>';
-                
+
                 // 格式化创建时间
                 const createdAt = knot.createdAt ? new Date(knot.createdAt).toLocaleString() : '-';
-                
+
                 row.innerHTML = `
                     <td>${knot.id}</td>
                     <td>${coverImage}</td>
                     <td>${knot.name}</td>
-                    <td><span class="badge bg-primary">${knot.category ? knot.category.name : '未分类'}</span></td>
+                    <td><span class="badge bg-primary">${knot.categoryName}</span></td>
                     <td>
                         <div class="d-flex align-items-center">
-                            <span>${knot.difficultyLevel}</span>
-                            <div class="ms-2">${stars}</div>
+                            <div>${stars}</div>
                         </div>
                     </td>
                     <td>${knot.viewCount || 0}</td>
@@ -462,55 +461,55 @@
                 tbody.appendChild(row);
             });
         }
-        
+
         // 显示分页控件
         function displayPagination(pageData) {
             const pagination = document.getElementById('pagination');
             pagination.innerHTML = '';
-            
+
             if (pageData.totalPages <= 1) {
                 return;
             }
-            
+
             // 上一页
             const prevLi = document.createElement('li');
             prevLi.className = `page-item ${pageData.hasPrevious ? '' : 'disabled'}`;
             prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${pageData.pageNumber - 1})">上一页</a>`;
             pagination.appendChild(prevLi);
-            
+
             // 页码
-            const startPage = Math.max(0, pageData.pageNumber - 2);
-            const endPage = Math.min(pageData.totalPages - 1, pageData.pageNumber + 2);
-            
+            const startPage = Math.max(1, pageData.pageNumber - 2);
+            const endPage = Math.min(pageData.totalPages, pageData.pageNumber + 2);
+
             for (let i = startPage; i <= endPage; i++) {
                 const pageLi = document.createElement('li');
                 pageLi.className = `page-item ${i === pageData.pageNumber ? 'active' : ''}`;
                 pageLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${i})">${i + 1}</a>`;
                 pagination.appendChild(pageLi);
             }
-            
+
             // 下一页
             const nextLi = document.createElement('li');
             nextLi.className = `page-item ${pageData.hasNext ? '' : 'disabled'}`;
             nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${pageData.pageNumber + 1})">下一页</a>`;
             pagination.appendChild(nextLi);
         }
-        
+
         // 搜索功能
         document.getElementById('searchBtn').addEventListener('click', function() {
             currentKeyword = document.getElementById('searchInput').value.trim();
-            loadKnots(0);
+            loadKnots(1);
         });
 
         // 筛选功能
         document.getElementById('categoryFilter').addEventListener('change', function() {
             currentCategoryId = this.value;
-            loadKnots(0);
+            loadKnots(1);
         });
 
         document.getElementById('statusFilter').addEventListener('change', function() {
             currentStatus = this.value;
-            loadKnots(0);
+            loadKnots(1);
         });
 
         // 封面图片预览
@@ -570,7 +569,7 @@
             formData.append('categoryId', categoryId);
             formData.append('difficultyLevel', difficultyLevel);
             formData.append('isPublished', isPublished);
-            
+
             if (coverFile) {
                 formData.append('coverImage', coverFile);
             }
@@ -611,10 +610,10 @@
                         document.getElementById('editKnotId').value = knot.id;
                         document.getElementById('editKnotName').value = knot.name;
                         document.getElementById('editKnotDescription').value = knot.description;
-                        document.getElementById('editKnotCategory').value = knot.category ? knot.category.id : '';
+                        document.getElementById('editKnotCategory').value = knot.categoryId;
                         document.getElementById('editKnotDifficulty').value = knot.difficultyLevel;
                         document.getElementById('editKnotPublished').checked = knot.isPublished;
-                        
+
                         // 显示封面图片预览
                         if (knot.coverImage) {
                             document.getElementById('editCoverPreview').src = knot.coverImage;
@@ -622,13 +621,13 @@
                         } else {
                             document.getElementById('editCoverPreview').classList.add('d-none');
                         }
-                        
+
                         // 显示现有图片
                         displayExistingImages(knot.images || []);
-                        
+
                         // 清空动态图片容器
                         document.getElementById('knotImagesContainer').innerHTML = '';
-                        
+
                         // 显示编辑模态框
                         const modal = new bootstrap.Modal(document.getElementById('editKnotModal'));
                         modal.show();
@@ -641,17 +640,17 @@
                     alert('获取绳结详情失败，请重试');
                 });
         }
-        
+
         // 显示现有图片
         function displayExistingImages(images) {
             const container = document.getElementById('existingImagesContainer');
             container.innerHTML = '';
-            
+
             if (images.length === 0) {
                 container.innerHTML = '<p class="text-muted">暂无图片</p>';
                 return;
             }
-            
+
             images.forEach(image => {
                 const imageDiv = document.createElement('div');
                 imageDiv.className = 'col-md-3 mb-3';
@@ -661,12 +660,12 @@
                         <div class="card-body">
                             <div class="mb-2">
                                 <label class="form-label">描述</label>
-                                <input type="text" class="form-control form-control-sm" value="${image.imageRemark || ''}" 
+                                <input type="text" class="form-control form-control-sm" value="${image.imageRemark || ''}"
                                        onchange="updateImageRemark(${image.id}, this.value)">
                             </div>
                             <div class="mb-2">
                                 <label class="form-label">排序</label>
-                                <input type="number" class="form-control form-control-sm" value="${image.sortOrder || 0}" 
+                                <input type="number" class="form-control form-control-sm" value="${image.sortOrder || 0}"
                                        onchange="updateImageSortOrder(${image.id}, this.value)">
                             </div>
                             <button type="button" class="btn btn-sm btn-danger" onclick="deleteKnotImage(${image.id})">
@@ -678,7 +677,7 @@
                 container.appendChild(imageDiv);
             });
         }
-        
+
         // 更新图片描述
         function updateImageRemark(imageId, remark) {
             fetch(`/admin/api/knot-images/${imageId}`, {
@@ -699,7 +698,7 @@
                 alert('更新图片描述失败，请重试');
             });
         }
-        
+
         // 更新图片排序
         function updateImageSortOrder(imageId, sortOrder) {
             fetch(`/admin/api/knot-images/${imageId}`, {
@@ -720,7 +719,7 @@
                 alert('更新图片排序失败，请重试');
             });
         }
-        
+
         // 删除绳结图片
         function deleteKnotImage(imageId) {
             if (confirm('确定要删除这张图片吗？')) {
@@ -744,7 +743,7 @@
                 });
             }
         }
-        
+
         // 更新绳结
         function updateKnot() {
             // 获取表单数据
@@ -755,7 +754,7 @@
             const difficultyLevel = document.getElementById('editKnotDifficulty').value;
             const isPublished = document.getElementById('editKnotPublished').checked;
             const coverFile = document.getElementById('editKnotCover').files[0];
-            
+
             // 获取动态添加的图片行数据
             const imageRows = document.getElementById('knotImagesContainer').children;
             const newImages = [];
@@ -780,13 +779,13 @@
                 document.getElementById('editKnotCategory').focus();
                 return;
             }
-            
+
             // 收集动态添加的图片数据
             for (let i = 0; i < imageRows.length; i++) {
                 const row = imageRows[i];
                 const fileInput = row.querySelector('input[type="file"]');
                 const remarkInput = row.querySelector('input[type="text"]');
-                
+
                 if (fileInput && fileInput.files[0]) {
                     newImages.push(fileInput.files[0]);
                     newImageRemarks.push(remarkInput ? remarkInput.value.trim() : '');
@@ -801,11 +800,11 @@
             formData.append('categoryId', categoryId);
             formData.append('difficultyLevel', difficultyLevel);
             formData.append('isPublished', isPublished);
-            
+
             if (coverFile) {
                 formData.append('coverImage', coverFile);
             }
-            
+
             // 添加新图片
             if (newImages.length > 0) {
                 for (let i = 0; i < newImages.length; i++) {
@@ -838,7 +837,7 @@
                 alert('更新失败，请重试');
             });
         }
-        
+
         // 编辑封面图片预览
         document.getElementById('editKnotCover').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -852,24 +851,24 @@
                 reader.readAsDataURL(file);
             }
         });
-        
+
         // 动态添加绳结图片行
         function addKnotImageRow() {
             const container = document.getElementById('knotImagesContainer');
             const imageCount = container.children.length;
             const rowId = `imageRow_${Date.now()}`;
-            
+
             const rowHtml = `
                 <div class="row mb-3 align-items-center" id="${rowId}">
                     <div class="col-md-1">
                         <span class="badge bg-primary">${imageCount + 1}</span>
                     </div>
                     <div class="col-md-4">
-                        <input type="file" class="form-control form-control-sm" accept="image/*" 
+                        <input type="file" class="form-control form-control-sm" accept="image/*"
                                onchange="previewKnotImage(this, '${rowId}')">
                     </div>
                     <div class="col-md-4">
-                        <input type="text" class="form-control form-control-sm" placeholder="图片描述" 
+                        <input type="text" class="form-control form-control-sm" placeholder="图片描述"
                                id="remark_${rowId}">
                     </div>
                     <div class="col-md-2">
@@ -882,10 +881,10 @@
                     </div>
                 </div>
             `;
-            
+
             container.insertAdjacentHTML('beforeend', rowHtml);
         }
-        
+
         // 预览绳结图片
         function previewKnotImage(input, rowId) {
             const file = input.files[0];
@@ -899,7 +898,7 @@
                 reader.readAsDataURL(file);
             }
         }
-        
+
         // 删除绳结图片行
         function removeKnotImageRow(rowId) {
             const row = document.getElementById(rowId);
@@ -909,12 +908,12 @@
                 reorderKnotImages();
             }
         }
-        
+
         // 重新排序绳结图片
         function reorderKnotImages() {
             const container = document.getElementById('knotImagesContainer');
             const rows = container.children;
-            
+
             for (let i = 0; i < rows.length; i++) {
                 const badge = rows[i].querySelector('.badge');
                 if (badge) {
@@ -945,7 +944,7 @@
                 });
             }
         }
-        
+
         // 登出功能
         async function handleLogout() {
             if (confirm('确定要退出登录吗？')) {
@@ -956,9 +955,9 @@
                             'Content-Type': 'application/json',
                         }
                     });
-                    
+
                     const result = await response.json();
-                    
+
                     if (result.success) {
                         // 登出成功，跳转到登录页面
                         window.location.href = '/admin/login';
@@ -971,13 +970,13 @@
                 }
             }
         }
-        
+
         // 定期检查登录状态
         setInterval(async function() {
             try {
                 const response = await fetch('/admin/auth/status');
                 const result = await response.json();
-                
+
                 if (!result.loggedIn) {
                     // 如果未登录，跳转到登录页面
                     window.location.href = '/admin/login';

@@ -1,6 +1,5 @@
 package com.knots.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -25,19 +24,11 @@ public class KnotImage {
     @Column(name = "image_remark")
     private String imageRemark;
 
-    @Column(name = "image_type")
-    private String imageType;
-
-    @Column(name = "file_size")
-    private Long fileSize;
-
     @Column(name = "sort_order")
     private Integer sortOrder = 0;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "knot_id")
-    @TableField(exist = false)
-    private Knot knot;
+    @Column(name = "knot_id")
+    private Long knotId;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
