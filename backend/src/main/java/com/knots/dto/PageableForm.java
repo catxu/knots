@@ -11,7 +11,7 @@ public class PageableForm {
     private int size = 10;
     private String sortBy = "createdAt";
     private String sortDirection = "desc";
-    
+
     public Pageable toPageable() {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         return PageRequest.of(page, size, sort);

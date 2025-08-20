@@ -57,7 +57,7 @@ public class AdminApiController {
             @RequestParam Long categoryId,
             @RequestParam(defaultValue = "1") int difficultyLevel,
             @RequestParam(defaultValue = "false") boolean isPublished,
-            @RequestParam(required = false) MultipartFile coverImage) {
+            @RequestParam MultipartFile coverImage) {
         try {
             Knot knot = new Knot();
             knot.setName(name);

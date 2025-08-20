@@ -9,7 +9,6 @@ import com.knots.dto.KnotsQueryForm;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
 import com.knots.entity.KnotImage;
-import com.knots.entity.User;
 import com.knots.mapper.KnotCategoryMapper;
 import com.knots.mapper.KnotMapper;
 import com.knots.repository.KnotCategoryRepository;
@@ -158,5 +157,10 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
     // 根据ID获取绳结图片
     public KnotImage getKnotImageById(Long id) {
         return knotImageRepository.findById(id).orElse(null);
+    }
+
+    public PageInfo<KnotDTO> searchKnots(KnotsQueryForm form) {
+        PageHelper.startPage(form.getPage(), form.getSize());
+        return new PageInfo<>(knotMapper.selectKnotWithCategory(form));
     }
 }

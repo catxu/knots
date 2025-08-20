@@ -1,15 +1,17 @@
 package com.knots.controller;
 
+import com.github.pagehelper.PageInfo;
+import com.knots.dto.KnotDTO;
+import com.knots.dto.KnotsQueryForm;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
 import com.knots.repository.KnotCategoryRepository;
 import com.knots.service.KnotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -30,12 +32,8 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<Knot>> searchKnots(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Knot> knots = knotService.searchKnots(keyword, pageable);
+    public ResponseEntity<PageInfo<KnotDTO>> searchKnots(KnotsQueryForm form) {
+        PageInfo<KnotDTO> knots = knotService.searchKnots(form);
         return ResponseEntity.ok(knots);
     }
 
