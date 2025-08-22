@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.knots.dto.KnotCategoryDTO;
 import com.knots.dto.KnotDTO;
+import com.knots.dto.KnotVO;
 import com.knots.dto.KnotsQueryForm;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class KnotService extends ServiceImpl<KnotMapper, Knot> {
@@ -39,6 +42,9 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
 
     @Autowired
     private KnotImageRepository knotImageRepository;
+
+    @Autowired
+    private FileService fileService;
 
     public Page<Knot> getAllPublishedKnots(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -62,9 +68,19 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
         return Page.empty(pageable);
     }
 
-    public List<Knot> getTopViewedKnots(int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        return knotRepository.findTopViewedKnots(pageable);
+    public List<KnotVO> getTopViewedKnots(int limit) {
+        PageHelper.startPage(1, limit);
+        List<Knot> knots = lambdaQuery().orderByDesc(Knot::getViewCount).list();
+        List<KnotVO> res = knots.stream().map(e -> {
+            KnotVO info = new KnotVO();
+            info.setId(e.getId());
+            info.setName(e.getName());
+            info.setDifficultyLevel(e.getDifficultyLevel());
+            info.setCoverImage(fileService.loadImage2Base64(e.getCoverImage()));
+            info.setViewCount(e.getViewCount());
+            return info;
+        }).collect(Collectors.toList());
+        return res;
     }
 
     public Knot getKnotById(Long id) {
@@ -99,7 +115,7 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
         }
     }
 
-    public List<KnotCategory> getAllCategories() {
+    public List<KnotCategoryDTO> getAllCategories() {
         // 带 knotCount 的分类列表
         return knotCategoryMapper.selectAllWithKnotCount();
     }

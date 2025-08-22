@@ -1,13 +1,16 @@
 package com.knots.dto;
 
-import com.knots.entity.KnotImage;
-import lombok.Data;
+import com.oak.root.base.bean.BaseInfo;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-public class KnotDTO {
+@Getter
+@Setter
+public class KnotDTO extends BaseInfo {
+    private static final long serialVersionUID = -7517116935324397718L;
     private Long id;
     private Long categoryId;
     private String name;
@@ -18,7 +21,7 @@ public class KnotDTO {
     private Integer difficultyLevel;
     private Integer viewCount;
     private Boolean isPublished;
-    private List<KnotImage> images;
+    private List<KnotImageDTO> images;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -1,11 +1,15 @@
 package com.knots.dto;
 
-import lombok.Data;
+import com.oak.root.base.bean.BaseInfo;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
-public class KnotImageDTO {
+@Getter
+@Setter
+public class KnotImageDTO extends BaseInfo {
+    private static final long serialVersionUID = 7552215263624676764L;
     private Long id;
     private String imageUrl;
     private String imageName;

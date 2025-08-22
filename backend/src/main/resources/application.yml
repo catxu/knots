@@ -41,7 +41,7 @@ jwt:
 
 # 文件上传配置
 file:
-  upload-dir: ./uploads/
+  upload-dir: C:/Users/xy/Pictures/uploads/
 
 mybatis-plus:
   configuration:

@@ -17,14 +17,14 @@
       <text class="info-label">难度等级</text>
       <view class="difficulty-stars">
         <text class="star" wx:for="{{knot.difficultyLevel}}" wx:key="*this">★</text>
-        <text class="difficulty-text">({{knot.difficultyLevel}}/5)</text>
+        <!-- <text class="difficulty-text">({{knot.difficultyLevel}}/5)</text> -->
       </view>
     </view>
     
-    <view class="info-item">
+    <!-- <view class="info-item">
       <text class="info-label">创建时间</text>
       <text class="info-value">{{knot.createdAt}}</text>
-    </view>
+    </view> -->
   </view>
 
   <!-- 绳结描述 -->

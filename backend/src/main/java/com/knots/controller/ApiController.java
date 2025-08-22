@@ -1,12 +1,14 @@
 package com.knots.controller;
 
 import com.github.pagehelper.PageInfo;
-import com.knots.dto.KnotDTO;
-import com.knots.dto.KnotsQueryForm;
+import com.knots.dto.KnotCategoryDTO;
 import com.knots.entity.Knot;
-import com.knots.entity.KnotCategory;
-import com.knots.repository.KnotCategoryRepository;
 import com.knots.service.KnotService;
+import com.knots.web.form.KnotQueryForm;
+import com.knots.web.vo.KnotVO;
+import com.oak.root.web.result.WebPageableResult;
+import com.oak.root.web.result.WebQueryResult;
+import com.oak.root.web.result.WebResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -19,29 +21,24 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ApiController {
 
-    @Autowired
-    private KnotCategoryRepository categoryRepository;
-
+    private static final int POPULAR_LIMIT = 6;
     @Autowired
     private KnotService knotService;
 
     @GetMapping("/categories")
-    public ResponseEntity<List<KnotCategory>> getCategories() {
-        List<KnotCategory> categories = knotService.getAllCategories();
-        return ResponseEntity.ok(categories);
+    public WebQueryResult<KnotCategoryDTO> getCategories() {
+        List<KnotCategoryDTO> categories = knotService.getAllCategories();
+        return WebQueryResult.successResult(categories);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<PageInfo<KnotDTO>> searchKnots(KnotsQueryForm form) {
-        PageInfo<KnotDTO> knots = knotService.searchKnots(form);
-        return ResponseEntity.ok(knots);
+    public WebPageableResult<KnotVO> searchKnots(KnotQueryForm form) {
+        PageInfo<KnotVO> pageInfo = knotService.searchKnots(form);
+        return WebPageableResult.successResult(form.getPage(), pageInfo.getTotal(), pageInfo.getList());
     }
 
     @GetMapping("/knots")
-    public ResponseEntity<Page<Knot>> getKnots(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Long categoryId) {
+    public WebPageableResult<KnotVO> getKnots(KnotQueryForm form) {
         Page<Knot> knots;
         if (categoryId != null) {
             knots = knotService.getKnotsByCategory(categoryId, page, size);
@@ -52,7 +49,7 @@ public class ApiController {
     }
 
     @GetMapping("/knots/{id}")
-    public ResponseEntity<Knot> getKnotById(@PathVariable Long id) {
+    public WebResult<KnotVO> getKnotById(@PathVariable Long id) {
         Knot knot = knotService.getKnotById(id);
         if (knot != null) {
             knotService.incrementViewCount(id);
@@ -63,9 +60,8 @@ public class ApiController {
     }
 
     @GetMapping("/knots/popular")
-    public ResponseEntity<List<Knot>> getPopularKnots(
-            @RequestParam(defaultValue = "5") int limit) {
-        List<Knot> knots = knotService.getTopViewedKnots(limit);
+    public WebQueryResult<KnotVO> getPopularKnots() {
+        List<KnotVO> knots = knotService.getTopViewedKnots(POPULAR_LIMIT);
         return ResponseEntity.ok(knots);
     }
 

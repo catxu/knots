@@ -2,7 +2,6 @@ package com.knots.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.knots.dto.KnotDTO;
-import com.knots.dto.KnotsQueryForm;
 import com.knots.dto.PageResponse;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
@@ -11,6 +10,9 @@ import com.knots.entity.User;
 import com.knots.service.FileService;
 import com.knots.service.KnotService;
 import com.knots.service.UserService;
+import com.knots.web.form.KnotQueryForm;
+import com.oak.root.web.result.WebPageableResult;
+import com.oak.root.web.result.WebResult;
 import io.jsonwebtoken.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,14 +20,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -45,7 +46,7 @@ public class AdminApiController {
 
     // 绳结相关API
     @GetMapping("/knots")
-    public ResponseEntity<PageResponse<KnotDTO>> getKnots(KnotsQueryForm queryForm) {
+    public WebPageableResult<KnotDTO> getKnots(KnotQueryForm queryForm) {
         PageInfo<KnotDTO> knotsPage = knotService.findKnotsByQuery(queryForm);
         return ResponseEntity.ok(PageResponse.of(knotsPage));
     }
@@ -83,7 +84,7 @@ public class AdminApiController {
     }
 
     @PutMapping("/knots/{id}")
-    public ResponseEntity<?> updateKnot(
+    public WebResult updateKnot(
             @PathVariable Long id,
             @RequestParam String name,
             @RequestParam String description,
@@ -98,7 +99,7 @@ public class AdminApiController {
         try {
             Knot existingKnot = knotService.getKnotById(id);
             if (existingKnot == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("绳结不存在"));
+                return WebResult.failResult("-1", "绳结不存在");
             }
 
             existingKnot.setName(name);
