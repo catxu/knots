@@ -1,14 +1,15 @@
 package com.knots.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.knots.dto.UserDTO;
 import com.knots.entity.User;
 import com.knots.mapper.UserMapper;
+import com.knots.web.form.UserQueryForm;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService extends ServiceImpl<UserMapper, User> implements UserDetailsService {
@@ -84,28 +86,30 @@ public class UserService extends ServiceImpl<UserMapper, User> implements UserDe
                 Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()))
         );
     }
-    
+
     public List<User> getAllUsers() {
         return list();
     }
-    
+
     public Optional<User> findById(Long id) {
         return Optional.ofNullable(getById(id));
     }
-    
+
     public User updateUser(User user) {
         updateById(user);
         return user;
     }
-    
+
     public void deleteUser(Long id) {
         removeById(id);
     }
-    
-    public Page<User> getUsersPage(Pageable pageable) {
-        com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> mpPage =
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageable.getPageNumber() + 1L, pageable.getPageSize());
-        IPage<User> result = page(mpPage, new LambdaQueryWrapper<User>().orderByDesc(User::getCreatedAt));
-        return new PageImpl<>(result.getRecords(), pageable, result.getTotal());
+
+    public PageInfo<UserDTO> getUsersPage(UserQueryForm form) {
+        PageHelper.startPage(form.getPage(), form.getPageSize());
+        return new PageInfo<>(lambdaQuery().list().stream().map(e -> {
+            UserDTO userDTO = new UserDTO();
+            BeanUtils.copyProperties(e, userDTO);
+            return userDTO;
+        }).collect(Collectors.toList()));
     }
 }

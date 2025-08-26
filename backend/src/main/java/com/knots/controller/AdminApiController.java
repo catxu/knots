@@ -1,24 +1,24 @@
 package com.knots.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.knots.dto.KnotCategoryDTO;
 import com.knots.dto.KnotDTO;
-import com.knots.dto.PageResponse;
+import com.knots.dto.UserDTO;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
 import com.knots.entity.KnotImage;
 import com.knots.entity.User;
+import com.knots.service.CategoryService;
 import com.knots.service.FileService;
 import com.knots.service.KnotService;
 import com.knots.service.UserService;
 import com.knots.web.form.KnotQueryForm;
+import com.knots.web.form.UserQueryForm;
+import com.oak.root.web.form.BasePageableForm;
 import com.oak.root.web.result.WebPageableResult;
 import com.oak.root.web.result.WebResult;
 import io.jsonwebtoken.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +34,8 @@ public class AdminApiController {
 
     @Autowired
     private KnotService knotService;
+    @Autowired
+    private CategoryService categoryService;
 
     @Autowired
     private UserService userService;
@@ -47,12 +49,12 @@ public class AdminApiController {
     // 绳结相关API
     @GetMapping("/knots")
     public WebPageableResult<KnotDTO> getKnots(KnotQueryForm queryForm) {
-        PageInfo<KnotDTO> knotsPage = knotService.findKnotsByQuery(queryForm);
-        return ResponseEntity.ok(PageResponse.of(knotsPage));
+        PageInfo<KnotDTO> pageInfo = knotService.findKnotsByQuery(queryForm);
+        return WebPageableResult.successResult(queryForm.getPage(), pageInfo.getTotal(), pageInfo.getList());
     }
 
     @PostMapping("/knots")
-    public ResponseEntity<?> createKnot(
+    public WebResult createKnot(
             @RequestParam String name,
             @RequestParam String description,
             @RequestParam Long categoryId,
@@ -68,18 +70,16 @@ public class AdminApiController {
             knot.setViewCount(0);
             // 设置分类
             KnotCategory category = knotService.getCategoryById(categoryId);
-            if (category == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("分类不存在"));
-            }
+            Assert.notNull(category, "分类不存在");
             knot.setCategoryId(categoryId);
             // 处理封面图片
             Assert.isTrue(coverImage != null && !coverImage.isEmpty(), "封面图片不能为空");
             String imagePath = fileService.uploadFile(coverImage);
             knot.setCoverImage(imagePath);
             Knot savedKnot = knotService.createKnot(knot);
-            return ResponseEntity.ok(createSuccessResponse("绳结创建成功", savedKnot));
+            return WebResult.successResult(savedKnot);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("创建失败：" + e.getMessage()));
+            return WebResult.failResult("400", "创建失败：" + e.getMessage());
         }
     }
 
@@ -109,9 +109,7 @@ public class AdminApiController {
 
             // 设置分类
             KnotCategory category = knotService.getCategoryById(categoryId);
-            if (category == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("分类不存在"));
-            }
+            Assert.notNull(category, "分类不存在");
             existingKnot.setCategoryId(categoryId);
 
             // 处理封面图片
@@ -153,10 +151,10 @@ public class AdminApiController {
             }
 
             knotService.updateKnot(existingKnot);
-            return ResponseEntity.ok(createSuccessResponse("绳结更新成功", null));
+            return WebResult.successResult();
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("更新失败：" + e.getMessage()));
+            return WebResult.failResult("400", "更新失败：" + e.getMessage());
         }
     }
 
@@ -236,14 +234,9 @@ public class AdminApiController {
 
     // 分类相关API
     @GetMapping("/categories")
-    public ResponseEntity<?> getCategories(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sortOrder").ascending());
-        Page<KnotCategory> categoriesPage = knotService.getCategoriesPage(pageable);
-
-        return ResponseEntity.ok(PageResponse.of(categoriesPage));
+    public WebPageableResult<KnotCategoryDTO> getCategories(BasePageableForm form) {
+        PageInfo<KnotCategoryDTO> categoriesPage = categoryService.getCategoriesPage(form);
+        return WebPageableResult.successResult(form.getPage(), categoriesPage.getTotal(), categoriesPage.getList());
     }
 
     @PostMapping("/categories")
@@ -317,14 +310,9 @@ public class AdminApiController {
 
     // 用户相关API
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<User> usersPage = userService.getUsersPage(pageable);
-
-        return ResponseEntity.ok(PageResponse.of(usersPage, this::sanitizeUser));
+    public WebPageableResult<UserDTO> getUsers(UserQueryForm form) {
+        PageInfo<UserDTO> usersPage = userService.getUsersPage(form);
+        return WebPageableResult.successResult(form.getPage(), usersPage.getTotal(), usersPage.getList());
     }
 
     @GetMapping("/users/{id}")

@@ -2,6 +2,7 @@ package com.knots.controller;
 
 import com.knots.dto.KnotCategoryDTO;
 import com.knots.entity.User;
+import com.knots.service.CategoryService;
 import com.knots.service.KnotService;
 import com.knots.web.vo.KnotVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ public class AdminController {
 
     @Autowired
     private KnotService knotService;
+    @Autowired
+    private CategoryService categoryService;
 
     // 登录页面
     @GetMapping("/login")
@@ -50,7 +53,7 @@ public class AdminController {
             return "redirect:/admin/login";
         }
 
-        List<KnotCategoryDTO> categories = knotService.getAllCategories();
+        List<KnotCategoryDTO> categories = categoryService.getAllCategories();
         model.addAttribute("categories", categories);
         model.addAttribute("adminUser", adminUser);
         return "admin/knots";

@@ -4,10 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.knots.dto.KnotCategoryDTO;
 import com.knots.dto.KnotDTO;
-import com.knots.dto.KnotVO;
-import com.knots.dto.KnotsQueryForm;
+import com.knots.dto.KnotImageDTO;
 import com.knots.entity.Knot;
 import com.knots.entity.KnotCategory;
 import com.knots.entity.KnotImage;
@@ -16,6 +14,9 @@ import com.knots.mapper.KnotMapper;
 import com.knots.repository.KnotCategoryRepository;
 import com.knots.repository.KnotImageRepository;
 import com.knots.repository.KnotRepository;
+import com.knots.web.form.KnotQueryForm;
+import com.knots.web.vo.KnotVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -89,13 +90,17 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
 
     public KnotDTO findKnotById(Long id) {
         PageHelper.startPage(1, 1);
-        KnotsQueryForm query = new KnotsQueryForm();
+        KnotQueryForm query = new KnotQueryForm();
         query.setKnotId(id);
         List<KnotDTO> knotDTOS = knotMapper.selectKnotWithCategory(query);
         Assert.notEmpty(knotDTOS, "绳结不存在");
         List<KnotImage> images = knotImageRepository.findByKnotIdOrderBySortOrderAsc(id);
         KnotDTO entity = knotDTOS.get(0);
-        entity.setImages(images);
+        entity.setImages(images == null ? null : images.stream().map(e -> {
+            KnotImageDTO t = new KnotImageDTO();
+            BeanUtils.copyProperties(e, t);
+            return t;
+        }).collect(Collectors.toList()));
         return entity;
     }
 
@@ -113,11 +118,6 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
             knot.setViewCount(knot.getViewCount() + 1);
             knotRepository.save(knot);
         }
-    }
-
-    public List<KnotCategoryDTO> getAllCategories() {
-        // 带 knotCount 的分类列表
-        return knotCategoryMapper.selectAllWithKnotCount();
     }
 
     public KnotCategory getCategoryById(Long id) {
@@ -140,13 +140,9 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
         return knotRepository.save(knot);
     }
 
-    public Page<KnotCategory> getCategoriesPage(Pageable pageable) {
-        return categoryRepository.findAll(pageable);
-    }
-
     // 条件查询方法
-    public PageInfo<KnotDTO> findKnotsByQuery(KnotsQueryForm queryForm) {
-        PageHelper.startPage(queryForm.getPage(), queryForm.getSize());
+    public PageInfo<KnotDTO> findKnotsByQuery(KnotQueryForm queryForm) {
+        PageHelper.startPage(queryForm.getPage(), queryForm.getPageSize());
         return new PageInfo<>(knotMapper.selectKnotWithCategory(queryForm));
     }
 
@@ -175,8 +171,8 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
         return knotImageRepository.findById(id).orElse(null);
     }
 
-    public PageInfo<KnotDTO> searchKnots(KnotsQueryForm form) {
-        PageHelper.startPage(form.getPage(), form.getSize());
+    public PageInfo<KnotDTO> searchKnots(KnotQueryForm form) {
+        PageHelper.startPage(form.getPage(), form.getPageSize());
         return new PageInfo<>(knotMapper.selectKnotWithCategory(form));
     }
 }
