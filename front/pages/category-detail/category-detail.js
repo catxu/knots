@@ -5,7 +5,7 @@ Page({
     categoryId: null,
     categoryName: '',
     knots: [],
-    page: 0,
+    page: 1,
     size: 10,
     hasMore: true,
     loading: false
@@ -22,17 +22,18 @@ Page({
 
   loadKnots(reset = false) {
     if (this.data.loading) return;
-    const nextPage = reset ? 0 : this.data.page;
+    const nextPage = reset ? 1 : this.data.page;
     this.setData({ loading: true });
 
     app.request({
-      url: `/knots?categoryId=${this.data.categoryId}&page=${nextPage}&size=${this.data.size}`
+      url: `/knots?categoryId=${this.data.categoryId}&page=${nextPage}&pageSize=${this.data.size}`
     }).then(res => {
-      const newList = reset ? res.content : [...this.data.knots, ...res.content];
+      const list = res.data || [];
+      const newList = reset ? list : [...this.data.knots, ...list];
       this.setData({
         knots: newList,
         page: nextPage + 1,
-        hasMore: !res.last,
+        hasMore: (res.page || 1) * this.data.size < (res.totalCount || newList.length),
         loading: false
       });
     }).catch(() => {

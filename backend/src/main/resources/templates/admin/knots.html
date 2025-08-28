@@ -371,7 +371,7 @@
         function loadKnots(page = 1) {
             currentPage = page;
 
-            let url = `/admin/api/knots?page=${page}&size=${currentSize}`;
+            let url = `/admin/api/knots?page=${page}&pageSize=${currentSize}`;
 
             if (currentKeyword) {
                 url += `&keyword=${encodeURIComponent(currentKeyword)}`;
@@ -385,9 +385,13 @@
 
             fetch(url)
                 .then(response => response.json())
-                .then(data => {
-                    displayKnots(data.content);
-                    displayPagination(data);
+                .then(result => {
+                    if (!result.success) {
+                        alert(result.message || '获取绳结列表失败');
+                        return;
+                    }
+                    displayKnots(result.data || []);
+                    displayPagination({ page: (result.page || 1), totalCount: result.totalCount || 0 });
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -467,31 +471,35 @@
             const pagination = document.getElementById('pagination');
             pagination.innerHTML = '';
 
-            if (pageData.totalPages <= 1) {
-                return;
-            }
+            const size = currentSize;
+            const pageNumber = pageData.page || 1; // 1-based in this page
+            const totalCount = pageData.totalCount || 0;
+            const totalPages = Math.max(1, Math.ceil(totalCount / size));
+            const hasPrevious = pageNumber > 1;
+            const hasNext = pageNumber < totalPages;
+            if (totalPages <= 1) { return; }
 
             // 上一页
             const prevLi = document.createElement('li');
-            prevLi.className = `page-item ${pageData.hasPrevious ? '' : 'disabled'}`;
-            prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${pageData.pageNumber - 1})">上一页</a>`;
+            prevLi.className = `page-item ${hasPrevious ? '' : 'disabled'}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${pageNumber - 1})">上一页</a>`;
             pagination.appendChild(prevLi);
 
             // 页码
-            const startPage = Math.max(1, pageData.pageNumber - 2);
-            const endPage = Math.min(pageData.totalPages, pageData.pageNumber + 2);
+            const startPage = Math.max(1, pageNumber - 2);
+            const endPage = Math.min(totalPages, pageNumber + 2);
 
             for (let i = startPage; i <= endPage; i++) {
                 const pageLi = document.createElement('li');
-                pageLi.className = `page-item ${i === pageData.pageNumber ? 'active' : ''}`;
-                pageLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${i})">${i + 1}</a>`;
+                pageLi.className = `page-item ${i === pageNumber ? 'active' : ''}`;
+                pageLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${i})">${i}</a>`;
                 pagination.appendChild(pageLi);
             }
 
             // 下一页
             const nextLi = document.createElement('li');
-            nextLi.className = `page-item ${pageData.hasNext ? '' : 'disabled'}`;
-            nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${pageData.pageNumber + 1})">下一页</a>`;
+            nextLi.className = `page-item ${hasNext ? '' : 'disabled'}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadKnots(${pageNumber + 1})">下一页</a>`;
             pagination.appendChild(nextLi);
         }
 

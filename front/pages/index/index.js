@@ -49,7 +49,7 @@ Page({
       url: '/categories'
     }).then(res => {
       this.setData({
-        categories: res
+        categories: res.data || []
       });
     }).catch(err => {
       console.error('加载分类失败:', err);
@@ -66,7 +66,7 @@ Page({
       url: '/knots/popular?limit=6'
     }).then(res => {
       this.setData({
-        popularKnots: res
+        popularKnots: res.data || []
       });
     }).catch(err => {
       console.error('加载热门绳结失败:', err);
@@ -80,10 +80,10 @@ Page({
   // 加载最新绳结
   loadLatestKnots() {
     app.request({
-      url: '/knots?page=0&size=6'
+      url: '/knots?page=1&pageSize=6'
     }).then(res => {
       this.setData({
-        latestKnots: res.content
+        latestKnots: (res.data || [])
       });
     }).catch(err => {
       console.error('加载最新绳结失败:', err);

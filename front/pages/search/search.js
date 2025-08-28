@@ -7,7 +7,7 @@ Page({
     hotKeywords: ['平结', '八字结', '双套结', '蝴蝶结', '渔人结', '绳结'],
     knots: [],
     total: 0,
-    page: 0,
+    page: 1,
     size: 10,
     hasMore: true,
     loading: false
@@ -66,17 +66,19 @@ Page({
     
     this.setData({
       loading: true,
-      page: 0,
+      page: 1,
       hasMore: true
     });
 
     app.request({
-      url: `/search?keyword=${encodeURIComponent(this.data.keyword)}&page=0&size=${this.data.size}`
+      url: `/search?keyword=${encodeURIComponent(this.data.keyword)}&page=1&pageSize=${this.data.size}`
     }).then(res => {
+      const list = res.data || [];
+      const total = typeof res.totalCount === 'number' ? res.totalCount : list.length;
       this.setData({
-        knots: res.content,
-        total: res.totalElements,
-        hasMore: !res.last,
+        knots: list,
+        total: total,
+        hasMore: (res.page || 1) * this.data.size < total,
         loading: false
       });
     }).catch(err => {
@@ -101,11 +103,16 @@ Page({
     });
 
     app.request({
-      url: `/search?keyword=${encodeURIComponent(this.data.keyword)}&page=${this.data.page}&size=${this.data.size}`
+      url: `/search?keyword=${encodeURIComponent(this.data.keyword)}&page=${this.data.page}&pageSize=${this.data.size}`
     }).then(res => {
+      const more = res.data || [];
+      const total = typeof res.totalCount === 'number' ? res.totalCount : (this.data.total || 0);
+      const merged = [...this.data.knots, ...more];
+      const currentPage = this.data.page;
+      const hasMore = (currentPage) * this.data.size < total;
       this.setData({
-        knots: [...this.data.knots, ...res.content],
-        hasMore: !res.last,
+        knots: merged,
+        hasMore: hasMore,
         loading: false
       });
     }).catch(err => {

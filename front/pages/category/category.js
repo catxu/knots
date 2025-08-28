@@ -24,7 +24,7 @@ Page({
       url: '/categories'
     }).then(res => {
       this.setData({
-        categories: res,
+        categories: res.data || [],
         loading: false
       });
     }).catch(err => {

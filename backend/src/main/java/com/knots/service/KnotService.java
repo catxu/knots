@@ -77,7 +77,7 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
             info.setId(e.getId());
             info.setName(e.getName());
             info.setDifficultyLevel(e.getDifficultyLevel());
-            info.setCoverImage(fileService.loadImage2Base64(e.getCoverImage()));
+            info.setCoverImage(FileService.buildImageUrl(e.getCoverImage()));
             info.setViewCount(e.getViewCount());
             return info;
         }).collect(Collectors.toList());
@@ -96,7 +96,7 @@ public class KnotService extends ServiceImpl<KnotMapper, Knot> {
         Assert.notEmpty(knotDTOS, "绳结不存在");
         List<KnotImage> images = knotImageRepository.findByKnotIdOrderBySortOrderAsc(id);
         KnotDTO entity = knotDTOS.get(0);
-        entity.setImages(images == null ? null : images.stream().map(e -> {
+        entity.setImages(images.stream().map(e -> {
             KnotImageDTO t = new KnotImageDTO();
             BeanUtils.copyProperties(e, t);
             return t;

@@ -4,6 +4,8 @@ import com.oak.root.base.bean.BaseInfo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class KnotVO extends BaseInfo {
@@ -13,4 +15,5 @@ public class KnotVO extends BaseInfo {
     private Integer difficultyLevel;
     private String coverImage;
     private Integer viewCount;
+    private List<KnotImageVO> images;
 }

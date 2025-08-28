@@ -1,10 +1,8 @@
 package com.knots.service;
 
-import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.StrUtil;
 import com.knots.config.Constants;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -69,5 +67,9 @@ public class FileService {
         } catch (IOException e) {
             throw new RuntimeException("读取文件失败: " + location, e);
         }
+    }
+
+    public static String buildImageUrl(String filename) {
+        return Constants.IMG_URL_PREFIX + filename;
     }
 }

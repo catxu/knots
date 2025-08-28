@@ -11,5 +11,6 @@ public class KnotCategoryDTO extends BaseInfo {
     private Long id;
     private String name;
     private String description;
+    private Integer sortOrder;
     private Integer knotCount;
 }

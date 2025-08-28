@@ -83,13 +83,27 @@ App({
           ...options.header
         },
         success: (res) => {
-          if (res.statusCode === 200) {
-            resolve(res.data);
+          if (res.statusCode === 200 && res.data) {
+            const body = res.data;
+            if (typeof body.success === 'boolean') {
+              if (body.success) {
+                resolve(body);
+              } else {
+                wx.showToast({ title: body.message || '请求失败', icon: 'none' });
+                reject(new Error(body.message || '请求失败'));
+              }
+            } else {
+              resolve(body);
+            }
           } else {
-            reject(new Error('请求失败'));
+            wx.showToast({ title: '网络错误', icon: 'none' });
+            reject(new Error('网络错误'));
           }
         },
-        fail: reject
+        fail: (err) => {
+          wx.showToast({ title: '网络异常', icon: 'none' });
+          reject(err);
+        }
       });
     });
   }

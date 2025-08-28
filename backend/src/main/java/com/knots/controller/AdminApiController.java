@@ -12,19 +12,19 @@ import com.knots.service.CategoryService;
 import com.knots.service.FileService;
 import com.knots.service.KnotService;
 import com.knots.service.UserService;
+import com.knots.web.form.CategoryCreateForm;
 import com.knots.web.form.KnotQueryForm;
 import com.knots.web.form.UserQueryForm;
 import com.oak.root.web.form.BasePageableForm;
 import com.oak.root.web.result.WebPageableResult;
 import com.oak.root.web.result.WebResult;
-import io.jsonwebtoken.lang.Assert;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,6 +50,7 @@ public class AdminApiController {
     @GetMapping("/knots")
     public WebPageableResult<KnotDTO> getKnots(KnotQueryForm queryForm) {
         PageInfo<KnotDTO> pageInfo = knotService.findKnotsByQuery(queryForm);
+        pageInfo.getList().forEach(e -> e.setCoverImage(FileService.buildImageUrl(e.getCoverImage())));
         return WebPageableResult.successResult(queryForm.getPage(), pageInfo.getTotal(), pageInfo.getList());
     }
 
@@ -159,77 +160,55 @@ public class AdminApiController {
     }
 
     @GetMapping("/knots/{id}")
-    public ResponseEntity<?> getKnot(@PathVariable Long id) {
-        try {
-            KnotDTO knot = knotService.findKnotById(id);
-            if (knot == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("绳结不存在"));
-            }
-            return ResponseEntity.ok(createSuccessResponse("获取成功", knot));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("获取失败：" + e.getMessage()));
-        }
+    public WebResult<KnotDTO> getKnot(@PathVariable Long id) {
+        KnotDTO knotDTO = knotService.findKnotById(id);
+        Assert.notNull(knotDTO, "绳结不存在");
+        knotDTO.setCoverImage(FileService.buildImageUrl(knotDTO.getCoverImage()));
+        knotDTO.getImages().forEach(e -> e.setImageUrl(FileService.buildImageUrl(e.getImageUrl())));
+        return WebResult.successResult(knotDTO);
     }
 
     @DeleteMapping("/knots/{id}")
-    public ResponseEntity<?> deleteKnot(@PathVariable Long id) {
-        try {
-            Knot knot = knotService.getKnotById(id);
-            if (knot == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("绳结不存在"));
-            }
-            // 删除封面图片
-            if (knot.getCoverImage() != null) {
-                fileService.deleteFile(knot.getCoverImage());
-            }
-            // 删除所有绳结图片
-            knotService.deleteKnotImages(id);
-            knotService.deleteKnot(id);
-            return ResponseEntity.ok(createSuccessResponse("绳结删除成功", null));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("删除失败：" + e.getMessage()));
+    public WebResult deleteKnot(@PathVariable Long id) {
+        Knot knot = knotService.getKnotById(id);
+        Assert.notNull(knot, "绳结不存在");
+        // 删除封面图片
+        if (knot.getCoverImage() != null) {
+            fileService.deleteFile(knot.getCoverImage());
         }
+        // 删除所有绳结图片
+        knotService.deleteKnotImages(id);
+        knotService.deleteKnot(id);
+        return WebResult.emptyResult();
     }
 
     // 绳结图片相关API
     @PutMapping("/knot-images/{id}")
-    public ResponseEntity<?> updateKnotImage(
+    public WebResult updateKnotImage(
             @PathVariable Long id,
             @RequestBody Map<String, Object> request) {
-        try {
-            KnotImage image = knotService.getKnotImageById(id);
-            if (image == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("图片不存在"));
-            }
-            if (request.containsKey("imageRemark")) {
-                image.setImageRemark((String) request.get("imageRemark"));
-            }
-            if (request.containsKey("sortOrder")) {
-                image.setSortOrder((Integer) request.get("sortOrder"));
-            }
-            KnotImage updatedImage = knotService.saveKnotImage(image);
-            return ResponseEntity.ok(createSuccessResponse("图片更新成功", updatedImage));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("更新失败：" + e.getMessage()));
+        KnotImage image = knotService.getKnotImageById(id);
+        Assert.notNull(image, "图片不存在");
+        if (request.containsKey("imageRemark")) {
+            image.setImageRemark((String) request.get("imageRemark"));
         }
+        if (request.containsKey("sortOrder")) {
+            image.setSortOrder((Integer) request.get("sortOrder"));
+        }
+        KnotImage updatedImage = knotService.saveKnotImage(image);
+        return WebResult.emptyResult();
     }
 
     @DeleteMapping("/knot-images/{id}")
-    public ResponseEntity<?> deleteKnotImage(@PathVariable Long id) {
-        try {
-            KnotImage image = knotService.getKnotImageById(id);
-            if (image == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("图片不存在"));
-            }
-            // 删除文件
-            if (image.getImageUrl() != null) {
-                fileService.deleteFile(image.getImageUrl());
-            }
-            knotService.deleteKnotImage(id);
-            return ResponseEntity.ok(createSuccessResponse("图片删除成功", null));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("删除失败：" + e.getMessage()));
+    public WebResult deleteKnotImage(@PathVariable Long id) {
+        KnotImage image = knotService.getKnotImageById(id);
+        Assert.notNull(image, "图片不存在");
+        // 删除文件
+        if (image.getImageUrl() != null) {
+            fileService.deleteFile(image.getImageUrl());
         }
+        knotService.deleteKnotImage(id);
+        return WebResult.emptyResult();
     }
 
     // 分类相关API
@@ -240,72 +219,45 @@ public class AdminApiController {
     }
 
     @PostMapping("/categories")
-    public ResponseEntity<?> createCategory(
-            @RequestParam String name,
-            @RequestParam(required = false) String description,
-            @RequestParam(defaultValue = "0") int sortOrder) {
-        try {
-            KnotCategory category = new KnotCategory();
-            category.setName(name);
-            category.setDescription(description);
-            category.setSortOrder(sortOrder);
-            KnotCategory savedCategory = knotService.createCategory(category);
-            return ResponseEntity.ok(createSuccessResponse("分类创建成功", savedCategory));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("创建失败：" + e.getMessage()));
-        }
+    public WebResult createCategory(@RequestBody CategoryCreateForm form) {
+        KnotCategory category = new KnotCategory();
+        category.setName(form.getName());
+        category.setDescription(form.getDescription());
+        category.setSortOrder(form.getSortOrder());
+        knotService.createCategory(category);
+        return WebResult.successResult();
     }
 
     @PutMapping("/categories/{id}")
-    public ResponseEntity<?> updateCategory(
+    public WebResult updateCategory(
             @PathVariable Long id,
             @RequestParam String name,
             @RequestParam(required = false) String description,
             @RequestParam(defaultValue = "0") int sortOrder) {
-        try {
-            KnotCategory category = knotService.getCategoryById(id);
-            if (category == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("分类不存在"));
-            }
-            category.setName(name);
-            category.setDescription(description);
-            category.setSortOrder(sortOrder);
-            KnotCategory updatedCategory = knotService.updateCategory(category);
-            return ResponseEntity.ok(createSuccessResponse("分类更新成功", updatedCategory));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("更新失败：" + e.getMessage()));
-        }
+        KnotCategory category = knotService.getCategoryById(id);
+        Assert.notNull(category, "分类不存在");
+        category.setName(name);
+        category.setDescription(description);
+        category.setSortOrder(sortOrder);
+        KnotCategory updatedCategory = knotService.updateCategory(category);
+        return WebResult.emptyResult();
     }
 
     @DeleteMapping("/categories/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
-        try {
-            KnotCategory category = knotService.getCategoryById(id);
-            if (category == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("分类不存在"));
-            }
-
-            knotService.deleteCategory(id);
-            return ResponseEntity.ok(createSuccessResponse("分类删除成功", null));
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("删除失败：" + e.getMessage()));
-        }
+    public WebResult deleteCategory(@PathVariable Long id) {
+        KnotCategory category = knotService.getCategoryById(id);
+        Assert.notNull(category, "分类不存在");
+        knotService.deleteCategory(id);
+        return WebResult.emptyResult();
     }
 
     @GetMapping("/categories/{id}")
-    public ResponseEntity<?> getCategory(@PathVariable Long id) {
-        try {
-            KnotCategory category = knotService.getCategoryById(id);
-            if (category == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("分类不存在"));
-            }
-
-            return ResponseEntity.ok(createSuccessResponse("获取成功", category));
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("获取失败：" + e.getMessage()));
-        }
+    public WebResult<KnotCategoryDTO> getCategory(@PathVariable Long id) {
+        KnotCategory category = knotService.getCategoryById(id);
+        Assert.notNull(category, "分类不存在");
+        KnotCategoryDTO t = new KnotCategoryDTO();
+        BeanUtils.copyProperties(category, t);
+        return WebResult.successResult(t);
     }
 
     // 用户相关API
@@ -316,136 +268,79 @@ public class AdminApiController {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<?> getUser(@PathVariable Long id) {
+    public WebResult<UserDTO> getUser(@PathVariable Long id) {
         Optional<User> userOpt = userService.findById(id);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body(createErrorResponse("用户不存在"));
-        }
-        return ResponseEntity.ok(createSuccessResponse("获取成功", sanitizeUser(userOpt.get())));
+        Assert.isTrue(userOpt.isPresent(), "用户不存在");
+        UserDTO t = new UserDTO();
+        BeanUtils.copyProperties(userOpt.get(), t);
+        return WebResult.successResult(t);
     }
 
     @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody Map<String, Object> request) {
+    public WebResult createUser(@RequestBody Map<String, Object> request) {
+        String username = (String) request.get("username");
+        String password = (String) request.get("password");
+        String nickName = (String) request.getOrDefault("nickName", null);
+        String roleStr = (String) request.getOrDefault("role", "USER");
+
+        Assert.hasText(username, "用户名不能为空");
+        Assert.hasText(password, "密码不能为空");
+        Assert.isTrue(!userService.existsByUsername(username), "用户名已存在");
+
+        User user = new User();
+        user.setUsername(username.trim());
+        user.setPassword(passwordEncoder.encode(password));
+        user.setNickName(nickName);
         try {
-            String username = (String) request.get("username");
-            String password = (String) request.get("password");
-            String nickName = (String) request.getOrDefault("nickName", null);
-            String roleStr = (String) request.getOrDefault("role", "USER");
-
-            if (username == null || username.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(createErrorResponse("用户名不能为空"));
-            }
-            if (password == null || password.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(createErrorResponse("密码不能为空"));
-            }
-            if (userService.existsByUsername(username)) {
-                return ResponseEntity.badRequest().body(createErrorResponse("用户名已存在"));
-            }
-
-            User user = new User();
-            user.setUsername(username.trim());
-            user.setPassword(passwordEncoder.encode(password));
-            user.setNickName(nickName);
-            try {
-                user.setRole(User.UserRole.valueOf(roleStr.toUpperCase()));
-            } catch (Exception ex) {
-                user.setRole(User.UserRole.USER);
-            }
-
-            User saved = userService.saveUser(user);
-            return ResponseEntity.ok(createSuccessResponse("用户创建成功", sanitizeUser(saved)));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("创建失败：" + e.getMessage()));
+            user.setRole(User.UserRole.valueOf(roleStr.toUpperCase()));
+        } catch (Exception ex) {
+            user.setRole(User.UserRole.USER);
         }
+        User saved = userService.saveUser(user);
+        return WebResult.emptyResult();
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        try {
-            Optional<User> userOpt = userService.findById(id);
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.badRequest().body(createErrorResponse("用户不存在"));
-            }
+    public WebResult updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        Optional<User> userOpt = userService.findById(id);
+        Assert.isTrue(userOpt.isPresent(), "用户不存在");
 
-            User user = userOpt.get();
+        User user = userOpt.get();
 
-            if (request.containsKey("username")) {
-                String newUsername = ((String) request.get("username")).trim();
-                if (newUsername.isEmpty()) {
-                    return ResponseEntity.badRequest().body(createErrorResponse("用户名不能为空"));
-                }
-                if (!newUsername.equals(user.getUsername()) && userService.existsByUsername(newUsername)) {
-                    return ResponseEntity.badRequest().body(createErrorResponse("用户名已存在"));
-                }
-                user.setUsername(newUsername);
-            }
-
-            if (request.containsKey("nickName")) {
-                user.setNickName((String) request.get("nickName"));
-            }
-
-            if (request.containsKey("role")) {
-                String roleStr = (String) request.get("role");
-                try {
-                    user.setRole(User.UserRole.valueOf(roleStr.toUpperCase()));
-                } catch (Exception ignored) {
-                }
-            }
-
-            if (request.containsKey("password")) {
-                String newPassword = (String) request.get("password");
-                if (newPassword != null && !newPassword.trim().isEmpty()) {
-                    user.setPassword(passwordEncoder.encode(newPassword));
-                }
-            }
-
-            User saved = userService.updateUser(user);
-            return ResponseEntity.ok(createSuccessResponse("用户更新成功", sanitizeUser(saved)));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("更新失败：" + e.getMessage()));
+        if (request.containsKey("username")) {
+            String newUsername = ((String) request.get("username")).trim();
+            Assert.hasText(newUsername, "用户名不能为空");
+            Assert.isTrue(!newUsername.equals(user.getUsername()) && !userService.existsByUsername(newUsername), "用户名已存在");
+            user.setUsername(newUsername);
         }
+
+        if (request.containsKey("nickName")) {
+            user.setNickName((String) request.get("nickName"));
+        }
+
+        if (request.containsKey("role")) {
+            String roleStr = (String) request.get("role");
+            try {
+                user.setRole(User.UserRole.valueOf(roleStr.toUpperCase()));
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (request.containsKey("password")) {
+            String newPassword = (String) request.get("password");
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(newPassword));
+            }
+        }
+        User saved = userService.updateUser(user);
+        return WebResult.emptyResult();
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        try {
-            Optional<User> userOpt = userService.findById(id);
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.badRequest().body(createErrorResponse("用户不存在"));
-            }
-
-            userService.deleteUser(id);
-            return ResponseEntity.ok(createSuccessResponse("用户删除成功", null));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse("删除失败：" + e.getMessage()));
-        }
-    }
-
-    private Map<String, Object> createSuccessResponse(String message, Object data) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", message);
-        response.put("data", data);
-        return response;
-    }
-
-    private Map<String, Object> createErrorResponse(String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return response;
-    }
-
-    private Map<String, Object> sanitizeUser(User user) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("id", user.getId());
-        data.put("username", user.getUsername());
-        data.put("nickName", user.getNickName());
-        data.put("avatarUrl", user.getAvatarUrl());
-        data.put("role", user.getRole() != null ? user.getRole().name() : null);
-        data.put("createdAt", user.getCreatedAt());
-        data.put("updatedAt", user.getUpdatedAt());
-        data.put("openId", user.getOpenId());
-        return data;
+    public WebResult deleteUser(@PathVariable Long id) {
+        Optional<User> userOpt = userService.findById(id);
+        Assert.isTrue(userOpt.isPresent(), "用户不存在");
+        userService.deleteUser(id);
+        return WebResult.emptyResult();
     }
 }

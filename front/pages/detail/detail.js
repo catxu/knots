@@ -23,15 +23,16 @@ Page({
     app.request({
       url: `/knots/${knotId}`
     }).then(res => {
+      const data = res.data || {};
       this.setData({
-        knot: res,
-        steps: this.parseSteps(res.steps),
-        imageUrls: res.images ? res.images.map(img => img.imageUrl) : []
+        knot: data,
+        steps: this.parseSteps(data.steps),
+        imageUrls: data.images ? data.images.map(img => img.imageUrl) : []
       });
       
       // 设置页面标题
       wx.setNavigationBarTitle({
-        title: res.name
+        title: data.name
       });
     }).catch(err => {
       console.error('加载绳结详情失败:', err);
@@ -56,10 +57,11 @@ Page({
   // 加载相关推荐
   loadRelatedKnots(knotId) {
     app.request({
-      url: `/knots?page=0&size=4`
+      url: `/knots?page=1&pageSize=4`
     }).then(res => {
       // 过滤掉当前绳结
-      const related = res.content.filter(knot => knot.id != knotId);
+      const list = res.data || [];
+      const related = list.filter(knot => knot.id != knotId);
       this.setData({
         relatedKnots: related
       });
