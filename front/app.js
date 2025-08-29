@@ -2,7 +2,17 @@ App({
   globalData: {
     userInfo: null,
     baseUrl: 'http://localhost:8080/api',
+    imageBaseUrl: 'http://localhost:8080',
     isLogin: false
+  },
+
+  // 构建图片完整URL
+  buildImageUrl(imagePath) {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    return this.globalData.imageBaseUrl + imagePath;
   },
 
   onLaunch() {

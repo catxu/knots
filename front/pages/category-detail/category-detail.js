@@ -29,6 +29,12 @@ Page({
       url: `/knots?categoryId=${this.data.categoryId}&page=${nextPage}&pageSize=${this.data.size}`
     }).then(res => {
       const list = res.data || [];
+      // 构建完整的图片URL
+      list.forEach(knot => {
+        if (knot.coverImage) {
+          knot.coverImage = app.buildImageUrl(knot.coverImage);
+        }
+      });
       const newList = reset ? list : [...this.data.knots, ...list];
       this.setData({
         knots: newList,

@@ -75,6 +75,12 @@ Page({
     }).then(res => {
       const list = res.data || [];
       const total = typeof res.totalCount === 'number' ? res.totalCount : list.length;
+      // 构建完整的图片URL
+      list.forEach(knot => {
+        if (knot.coverImage) {
+          knot.coverImage = app.buildImageUrl(knot.coverImage);
+        }
+      });
       this.setData({
         knots: list,
         total: total,
@@ -107,6 +113,12 @@ Page({
     }).then(res => {
       const more = res.data || [];
       const total = typeof res.totalCount === 'number' ? res.totalCount : (this.data.total || 0);
+      // 构建完整的图片URL
+      more.forEach(knot => {
+        if (knot.coverImage) {
+          knot.coverImage = app.buildImageUrl(knot.coverImage);
+        }
+      });
       const merged = [...this.data.knots, ...more];
       const currentPage = this.data.page;
       const hasMore = (currentPage) * this.data.size < total;

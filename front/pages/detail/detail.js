@@ -24,6 +24,17 @@ Page({
       url: `/knots/${knotId}`
     }).then(res => {
       const data = res.data || {};
+      // 构建完整的图片URL
+      if (data.coverImage) {
+        data.coverImage = app.buildImageUrl(data.coverImage);
+      }
+      if (data.images) {
+        data.images.forEach(img => {
+          if (img.imageUrl) {
+            img.imageUrl = app.buildImageUrl(img.imageUrl);
+          }
+        });
+      }
       this.setData({
         knot: data,
         steps: this.parseSteps(data.steps),
@@ -62,6 +73,12 @@ Page({
       // 过滤掉当前绳结
       const list = res.data || [];
       const related = list.filter(knot => knot.id != knotId);
+      // 构建完整的图片URL
+      related.forEach(knot => {
+        if (knot.coverImage) {
+          knot.coverImage = app.buildImageUrl(knot.coverImage);
+        }
+      });
       this.setData({
         relatedKnots: related
       });

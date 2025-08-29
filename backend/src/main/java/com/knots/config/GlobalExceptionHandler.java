@@ -1,6 +1,6 @@
 package com.knots.config;
 
-import org.springframework.http.ResponseEntity;
+import com.oak.root.web.result.WebResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,8 +9,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException ex) {
+    public WebResult handleValidationException(MethodArgumentNotValidException ex) {
         String errorMsg = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-        return ResponseEntity.badRequest().body(errorMsg);
+        return WebResult.failResult("400", errorMsg);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public WebResult handleValidationException(IllegalArgumentException ex) {
+        return WebResult.failResult("400", ex.getMessage());
     }
 }

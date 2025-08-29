@@ -65,8 +65,15 @@ Page({
     app.request({
       url: '/knots/popular?limit=6'
     }).then(res => {
+      const knots = res.data || [];
+      // 构建完整的图片URL
+      knots.forEach(knot => {
+        if (knot.coverImage) {
+          knot.coverImage = app.buildImageUrl(knot.coverImage);
+        }
+      });
       this.setData({
-        popularKnots: res.data || []
+        popularKnots: knots
       });
     }).catch(err => {
       console.error('加载热门绳结失败:', err);
@@ -82,8 +89,15 @@ Page({
     app.request({
       url: '/knots?page=1&pageSize=6'
     }).then(res => {
+      const knots = res.data || [];
+      // 构建完整的图片URL
+      knots.forEach(knot => {
+        if (knot.coverImage) {
+          knot.coverImage = app.buildImageUrl(knot.coverImage);
+        }
+      });
       this.setData({
-        latestKnots: (res.data || [])
+        latestKnots: knots
       });
     }).catch(err => {
       console.error('加载最新绳结失败:', err);
