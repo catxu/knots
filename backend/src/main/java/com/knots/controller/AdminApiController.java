@@ -58,6 +58,7 @@ public class AdminApiController {
     public WebResult createKnot(
             @RequestParam String name,
             @RequestParam String description,
+            @RequestParam String steps,
             @RequestParam Long categoryId,
             @RequestParam(defaultValue = "1") int difficultyLevel,
             @RequestParam(defaultValue = "false") boolean isPublished,
@@ -66,6 +67,7 @@ public class AdminApiController {
             Knot knot = new Knot();
             knot.setName(name);
             knot.setDescription(description);
+            knot.setSteps(steps);
             knot.setDifficultyLevel(difficultyLevel);
             knot.setIsPublished(isPublished);
             knot.setViewCount(0);
@@ -78,7 +80,7 @@ public class AdminApiController {
             String imagePath = fileService.uploadFile(coverImage);
             knot.setCoverImage(imagePath);
             Knot savedKnot = knotService.createKnot(knot);
-            return WebResult.successResult(savedKnot);
+            return WebResult.emptyResult();
         } catch (Exception e) {
             return WebResult.failResult("400", "创建失败：" + e.getMessage());
         }
@@ -89,6 +91,7 @@ public class AdminApiController {
             @PathVariable Long id,
             @RequestParam String name,
             @RequestParam String description,
+            @RequestParam String steps,
             @RequestParam Long categoryId,
             @RequestParam(defaultValue = "1") int difficultyLevel,
             @RequestParam(defaultValue = "false") boolean isPublished,
@@ -105,6 +108,7 @@ public class AdminApiController {
 
             existingKnot.setName(name);
             existingKnot.setDescription(description);
+            existingKnot.setDescription(steps);
             existingKnot.setDifficultyLevel(difficultyLevel);
             existingKnot.setIsPublished(isPublished);
 

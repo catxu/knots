@@ -206,7 +206,11 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="knotDescription" class="form-label">描述</label>
-                                    <textarea class="form-control" id="knotDescription" rows="3"></textarea>
+                                    <textarea class="form-control" id="knotDescription" rows="3" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="knotSteps" class="form-label">步骤</label>
+                                    <textarea class="form-control" id="knotSteps" rows="3" required></textarea>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -280,6 +284,10 @@
                                 <div class="mb-3">
                                     <label for="editKnotDescription" class="form-label">描述</label>
                                     <textarea class="form-control" id="editKnotDescription" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editKnotSteps" class="form-label">步骤</label>
+                                    <textarea class="form-control" id="editKnotSteps" rows="3"></textarea>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -539,6 +547,7 @@
             // 获取表单数据
             const name = document.getElementById('knotName').value.trim();
             const description = document.getElementById('knotDescription').value.trim();
+            const steps = document.getElementById('knotSteps').value.trim();
             const categoryId = document.getElementById('knotCategory').value;
             const difficultyLevel = document.getElementById('knotDifficulty').value;
             const isPublished = document.getElementById('knotPublished').checked;
@@ -554,6 +563,12 @@
             if (!description) {
                 alert('请输入绳结描述');
                 document.getElementById('knotDescription').focus();
+                return;
+            }
+
+            if (!steps) {
+                alert('请输入绳结步骤');
+                document.getElementById('knotSteps').focus();
                 return;
             }
 
@@ -574,6 +589,7 @@
             const formData = new FormData();
             formData.append('name', name);
             formData.append('description', description);
+            formData.append('steps', steps);
             formData.append('categoryId', categoryId);
             formData.append('difficultyLevel', difficultyLevel);
             formData.append('isPublished', isPublished);
@@ -618,6 +634,7 @@
                         document.getElementById('editKnotId').value = knot.id;
                         document.getElementById('editKnotName').value = knot.name;
                         document.getElementById('editKnotDescription').value = knot.description;
+                        document.getElementById('editKnotSteps').value = knot.steps;
                         document.getElementById('editKnotCategory').value = knot.categoryId;
                         document.getElementById('editKnotDifficulty').value = knot.difficultyLevel;
                         document.getElementById('editKnotPublished').checked = knot.isPublished;
@@ -758,6 +775,7 @@
             const id = document.getElementById('editKnotId').value;
             const name = document.getElementById('editKnotName').value.trim();
             const description = document.getElementById('editKnotDescription').value.trim();
+            const steps = document.getElementById('editKnotSteps').value.trim();
             const categoryId = document.getElementById('editKnotCategory').value;
             const difficultyLevel = document.getElementById('editKnotDifficulty').value;
             const isPublished = document.getElementById('editKnotPublished').checked;
@@ -779,6 +797,12 @@
             if (!description) {
                 alert('请输入绳结描述');
                 document.getElementById('editKnotDescription').focus();
+                return;
+            }
+
+            if (!steps) {
+                alert('请输入绳结步骤');
+                document.getElementById('editKnotSteps').focus();
                 return;
             }
 
@@ -805,6 +829,7 @@
             const formData = new FormData();
             formData.append('name', name);
             formData.append('description', description);
+            formData.append('steps', steps);
             formData.append('categoryId', categoryId);
             formData.append('difficultyLevel', difficultyLevel);
             formData.append('isPublished', isPublished);

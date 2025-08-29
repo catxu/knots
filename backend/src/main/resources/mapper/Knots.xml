@@ -12,6 +12,7 @@
         k.view_count AS viewCount,
         k.is_published,
         k.description,
+        k.steps,
         k.created_at,
         c.name AS categoryName
         FROM knots k
