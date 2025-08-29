@@ -6,7 +6,8 @@ Page({
     steps: [],
     relatedKnots: [],
     imageUrls: [],
-    isFavorite: false
+    isFavorite: false,
+    autoplayInterval: 5000
   },
 
   onLoad(options) {
@@ -37,7 +38,7 @@ Page({
       }
       this.setData({
         knot: data,
-        steps: this.parseSteps(data.steps),
+        steps: data.steps,
         imageUrls: data.images ? data.images.map(img => img.imageUrl) : []
       });
       
@@ -120,6 +121,20 @@ Page({
     wx.setStorageSync('favorites', favorites);
     this.setData({
       isFavorite: !this.data.isFavorite
+    });
+  },
+
+  // 切换自动播放
+  toggleAutoplay(e) {
+    this.setData({
+      autoplay: e.detail.value
+    });
+  },
+
+  // 改变播放速度
+  changeSpeed(e) {
+    this.setData({
+      autoplayInterval: e.detail.value
     });
   },
 

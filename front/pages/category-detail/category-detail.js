@@ -15,7 +15,7 @@ Page({
     const { id, name } = options || {};
     this.setData({
       categoryId: Number(id),
-      categoryName: name || ''
+      categoryName: decodeURIComponent(name) || ''
     });
     this.loadKnots(true);
   },
